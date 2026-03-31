@@ -226,6 +226,7 @@
     <div class="tab-bar">
       <button class="tab active" onclick="setTab(this,'daily')">데일리 업무</button>
       <button class="tab" onclick="setTab(this,'report')">주간보고서</button>
+      <button class="tab" onclick="setTab(this,'checkout')">퇴근보고</button>
       <button class="tab" onclick="setTab(this,'monthly')">월간 성과</button>
       <button class="tab" onclick="setTab(this,'settings')">설정</button>
     </div>
@@ -293,6 +294,19 @@
   <div class="pane" id="pane-report" style="display:none">
     <div id="report-body"></div>
     <button class="copy-btn" onclick="copyReport()">클립보드에 복사</button>
+  </div>
+
+  <div class="pane" id="pane-checkout" style="display:none">
+    <div class="settings-card" style="margin-bottom:12px">
+      <div class="settings-head">퇴근보고 메시지</div>
+      <div style="padding:12px 16px">
+        <textarea id="checkout-msg" rows="2"
+          style="width:100%;font-size:14px;padding:8px 10px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:var(--font);resize:none;line-height:1.6"
+          placeholder="퇴근합니다!">퇴근합니다!</textarea>
+      </div>
+    </div>
+    <div class="rs-card" id="checkout-preview"></div>
+    <button class="copy-btn" onclick="copyCheckout()" style="margin-top:12px">퇴근보고 복사</button>
   </div>
 
   <div class="pane" id="pane-monthly" style="display:none">
@@ -891,13 +905,65 @@ function renderClSettings(){
   }).join('');
 }
 
+function renderCheckout(){
+  const tasks=S.tasks[wk]||[];
+  const todayDone=tasks.filter(t=>!t.isNext&&t.date===todayStr&&t.done);
+  const todayPending=tasks.filter(t=>!t.isNext&&t.date===todayStr&&!t.done);
+  const preview=document.getElementById('checkout-preview');
+  if(!preview)return;
+
+  const doneHtml=todayDone.length
+    ?todayDone.map(t=>`<div class="rs-item">✓ ${t.client?`<strong style="font-weight:500">${esc(t.client)}</strong> : `:''}${esc(t.content)}</div>`).join('')
+    :`<div class="rs-none">완료한 업무가 없어요</div>`;
+
+  const pendingHtml=todayPending.length
+    ?`<div style="margin-top:12px">
+        <div class="rs-head" style="margin-bottom:6px"><span class="rs-dot" style="background:#EF9F27"></span>미완료</div>
+        ${todayPending.map(t=>`<div class="rs-item" style="color:var(--text2)">- ${t.client?`<strong style="font-weight:500">${esc(t.client)}</strong> : `:''}${esc(t.content)}</div>`).join('')}
+      </div>`:'';
+
+  preview.innerHTML=`
+    <div class="rs-head" style="margin-bottom:2px"><span style="font-size:14px;font-weight:500;color:var(--text)">[퇴근보고]</span></div>
+    <div style="font-size:14px;color:var(--text2);margin-bottom:12px" id="checkout-msg-preview"></div>
+    <div class="rs-head" style="margin-bottom:6px"><span class="rs-dot" style="background:#1D9E75"></span>완료 업무</div>
+    ${doneHtml}
+    ${pendingHtml}`;
+
+  const msgEl=document.getElementById('checkout-msg-preview');
+  if(msgEl)msgEl.textContent=document.getElementById('checkout-msg').value||'퇴근합니다!';
+}
+
+function buildCheckoutTxt(){
+  const tasks=S.tasks[wk]||[];
+  const msg=document.getElementById('checkout-msg').value.trim()||'퇴근합니다!';
+  const todayDone=tasks.filter(t=>!t.isNext&&t.date===todayStr&&t.done);
+  const todayPending=tasks.filter(t=>!t.isNext&&t.date===todayStr&&!t.done);
+
+  let lines=[`[퇴근보고] ${msg}`,''];
+  if(todayDone.length){
+    todayDone.forEach(t=>lines.push(`✓ ${t.client?t.client+' : ':''}${t.content}`));
+  } else {
+    lines.push('(완료한 업무 없음)');
+  }
+  if(todayPending.length){
+    lines.push('');
+    lines.push('▸ 미완료');
+    todayPending.forEach(t=>lines.push(`- ${t.client?t.client+' : ':''}${t.content}`));
+  }
+  return lines.join('\n');
+}
+
+function copyCheckout(){
+  navigator.clipboard.writeText(buildCheckoutTxt()).then(()=>toast('퇴근보고 복사됐어요!'));
+}
 function setTab(btn,tab){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
-  ['daily','report','monthly','settings'].forEach(p=>{
+  ['daily','report','checkout','monthly','settings'].forEach(p=>{
     document.getElementById('pane-'+p).style.display=p===tab?'':'none';
   });
   if(tab==='report')renderReport();
+  if(tab==='checkout')renderCheckout();
   if(tab==='monthly')renderMonthly();
   if(tab==='settings'){
     document.getElementById('s-username').value=S.username||'';
