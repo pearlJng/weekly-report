@@ -95,23 +95,35 @@
   .day-count { font-size: 11px; color: var(--text3); }
 
   /* Task cards */
-  .task-card { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: var(--radius); border: 0.5px solid transparent; transition: background .12s, border-color .12s; cursor: grab; user-select: none; }
+  .task-card { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: var(--radius); border: 0.5px solid transparent; transition: background .12s, border-color .12s, opacity .2s; cursor: grab; user-select: none; }
   .task-card:hover { background: var(--bg2); }
+  .task-card.done-card { opacity: .5; }
   .task-card.dragging { opacity: .35; }
   .task-card.drag-over { border-color: var(--border3); background: var(--bg2); }
   .drag-handle { font-size: 12px; color: var(--text3); flex-shrink: 0; margin-top: 3px; opacity: 0; transition: opacity .15s; cursor: grab; line-height: 1; }
   .task-card:hover .drag-handle { opacity: 1; }
 
-  .cb { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid var(--border3); background: transparent; cursor: pointer; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: all .18s; }
-  .cb.checked { background: var(--text); border-color: var(--text); }
-  .cb.checked::after { content: ''; display: block; width: 10px; height: 10px; background: var(--bg); clip-path: polygon(14% 44%,0 65%,50% 100%,100% 16%,80% 0%,43% 62%); }
+  .cb { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--border3); background: transparent; cursor: pointer; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: border-color .15s, background .2s, transform .1s; position: relative; }
+  .cb:hover:not(.checked) { border-color: #1D9E75; background: #E1F5EE; }
+  .cb:active { transform: scale(.88); }
+  .cb.checked { background: #1D9E75; border-color: #1D9E75; }
+  .cb.checked::after { content: ''; display: block; width: 11px; height: 11px; background: #fff; clip-path: polygon(14% 44%,0 65%,50% 100%,100% 16%,80% 0%,43% 62%); }
 
   .task-body { flex: 1; min-width: 0; }
   .task-text { font-size: 14px; color: var(--text); line-height: 1.5; word-break: break-word; transition: color .15s; cursor: text; }
   .task-text.done { text-decoration: line-through; color: var(--text3); }
   .task-text.editing { display: none; }
-  .task-inline-input { font-size: 14px; color: var(--text); line-height: 1.5; width: 100%; border: none; border-bottom: 1.5px solid var(--border3); background: transparent; font-family: var(--font); padding: 0 0 2px; outline: none; display: none; }
-  .task-inline-input.active { display: block; }
+  .task-inline-input { display: none; }
+
+  .task-edit-panel { display:none; flex-direction:column; gap:7px; padding:8px 0 4px; }
+  .task-edit-panel.active { display:flex; }
+  .tep-content { font-size:14px; color:var(--text); width:100%; border:none; border-bottom:1.5px solid var(--border3); background:transparent; font-family:var(--font); padding:0 0 3px; outline:none; }
+  .tep-row { display:flex; gap:6px; }
+  .tep-sel { font-size:12px; padding:4px 8px; border:0.5px solid var(--border2); border-radius:var(--radius); background:var(--bg2); color:var(--text); font-family:var(--font); appearance:none; -webkit-appearance:none; flex:1; cursor:pointer; }
+  .tep-sel:focus { outline:none; border-color:var(--border3); }
+  .tep-actions { display:flex; gap:5px; justify-content:flex-end; margin-top:2px; }
+  .tep-save { font-size:12px; padding:4px 12px; border-radius:var(--radius); border:none; background:var(--text); color:var(--bg); cursor:pointer; font-family:var(--font); font-weight:500; }
+  .tep-cancel { font-size:12px; padding:4px 10px; border-radius:var(--radius); border:0.5px solid var(--border2); background:transparent; color:var(--text2); cursor:pointer; font-family:var(--font); }
   .task-chips { display: flex; gap: 4px; margin-top: 5px; flex-wrap: wrap; align-items: center; }
   .chip { font-size: 11px; padding: 2px 7px; border-radius: 10px; font-weight: 500; white-space: nowrap; }
   .chip-client { background: var(--bg3); color: var(--text2); }
@@ -572,40 +584,52 @@ function addTask(){
   save();renderDaily();
 }
 
+function tepTypeChange(id, val){
+  const row=document.getElementById('tep-date-row-'+id);
+  if(row)row.style.display=val==='nextweek'?'':'none';
+}
 function startInlineEdit(id, textEl){
   const t=(S.tasks[wk]||[]).find(x=>String(x.id)===String(id));
   if(!t||t.done)return;
   const card=textEl.closest('.task-card');
   card.setAttribute('draggable','false');
-  const input=card.querySelector('.task-inline-input');
-  input.value=t.content||'';
   textEl.classList.add('editing');
-  input.classList.add('active');
-  input.focus();
-  input.select();
+  const panel=document.getElementById('tep-'+id);
+  const chips=document.getElementById('tep-chips-'+id);
+  const contentEl=document.getElementById('tep-content-'+id);
+  contentEl.value=t.content||'';
+  panel.classList.add('active');
+  if(chips)chips.style.display='none';
+  setTimeout(()=>{contentEl.focus();contentEl.select();},50);
 }
-function commitInlineEdit(id, inputEl){
+function commitInlineEdit(id){
   const t=(S.tasks[wk]||[]).find(x=>String(x.id)===String(id));
   if(!t)return;
-  const val=inputEl.value.trim();
-  const card=inputEl.closest('.task-card');
-  const textEl=card.querySelector('.task-text');
-  if(val&&val!==t.content){
-    t.content=val;
-    textEl.textContent=val;
-    save();
-    toast('수정됐어요');
-  }
-  textEl.classList.remove('editing');
-  inputEl.classList.remove('active');
-  card.setAttribute('draggable','true');
+  const contentEl=document.getElementById('tep-content-'+id);
+  const clientEl=document.getElementById('tep-client-'+id);
+  const typeEl=document.getElementById('tep-type-'+id);
+  const dateEl=document.getElementById('tep-date-'+id);
+  if(!contentEl)return;
+  const val=contentEl.value.trim();
+  if(!val)return;
+  const clientVal=clientEl?clientEl.value:'';
+  const typeVal=typeEl?typeEl.value:'today';
+  t.content=val;
+  t.client=clientVal;
+  t.base=(typeVal==='issue')?'issue':clientVal?(S.clients[clientVal]||'etc'):'etc';
+  t.isNext=(typeVal==='nextweek');
+  t.scheduledDate=(typeVal==='nextweek'&&dateEl)?dateEl.value:'';
+  save();renderDaily();toast('수정됐어요');
 }
-function cancelInlineEdit(id, inputEl){
-  const card=inputEl.closest('.task-card');
-  const textEl=card.querySelector('.task-text');
-  textEl.classList.remove('editing');
-  inputEl.classList.remove('active');
-  card.setAttribute('draggable','true');
+function cancelInlineEdit(id){
+  const panel=document.getElementById('tep-'+id);
+  const chips=document.getElementById('tep-chips-'+id);
+  const card=panel?panel.closest('.task-card'):null;
+  const textEl=card?card.querySelector('.task-text'):null;
+  if(panel)panel.classList.remove('active');
+  if(chips)chips.style.display='';
+  if(textEl)textEl.classList.remove('editing');
+  if(card)card.setAttribute('draggable','true');
 }
 function toggleDone(id){
   const t=(S.tasks[wk]||[]).find(x=>String(x.id)===String(id));
@@ -671,7 +695,8 @@ function renderCard(t){
     t.client?`<span class="chip chip-client">${esc(t.client)}</span>`:'',
     `<span class="chip ${SEC_CHIP[sec]||'chip-etc'}">${BASE_S[t.base]||''}</span>`,
     t.carriedFrom?`<span class="chip chip-carried">이월</span>`:'',
-    (t.isNext&&!t.carriedFrom)?`<span class="chip" style="background:var(--gray-bg);color:var(--gray-text)">차주</span>`:''
+    (t.isNext&&!t.carriedFrom)?`<span class="chip" style="background:var(--gray-bg);color:var(--gray-text)">차주</span>`:'',
+    (t.isNext&&t.scheduledDate)?`<span class="chip" style="background:var(--amber-bg);color:var(--amber-text)">${fmtD(t.scheduledDate)}</span>`:''
   ].filter(Boolean).join('');
   const sid=t.id;
   const carryBtn=(!t.done&&!t.isNext&&!isIssue)?`<button class="ia" onclick="carryNext('${sid}')" title="차주이월">→</button>`:'';
@@ -687,16 +712,36 @@ function renderCard(t){
     </div>`;
   }).join('')}</div>`:'';
   const attachBtn=isIssue?`<button class="ia" onclick="attachFile('${sid}')" title="파일 첨부">⊕</button>`:'';
-  return `<div class="task-card" draggable="true" data-id="${sid}"
+  return `<div class="task-card${t.done?' done-card':''}" draggable="true" data-id="${sid}"
     ondragstart="dStart(event,'${sid}')" ondragover="dOver(event,'${sid}')" ondrop="dDrop(event,'${sid}')" ondragend="dEnd()">
     <span class="drag-handle">⋮⋮</span>
     <div class="cb${t.done?' checked':''}" onclick="toggleDone('${sid}')"></div>
     <div class="task-body">
       <div class="task-text${t.done?' done':''}" ondblclick="startInlineEdit('${sid}',this)" title="더블클릭으로 편집">${esc(t.content)}</div>
-      <input class="task-inline-input" data-id="${sid}"
-        onblur="commitInlineEdit('${sid}',this)"
-        onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}else if(event.key==='Escape'){cancelInlineEdit('${sid}',this)}">
-      <div class="task-chips">
+      <div class="task-edit-panel" id="tep-${sid}">
+        <input class="tep-content" id="tep-content-${sid}" placeholder="업무 내용"
+          onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();commitInlineEdit('${sid}')}else if(event.key==='Escape'){cancelInlineEdit('${sid}')}">
+        <div class="tep-row">
+          <select class="tep-sel" id="tep-client-${sid}">
+            <option value="">고객사 없음</option>
+            ${Object.keys(S.clients).map(n=>`<option value="${esc(n)}"${t.client===n?' selected':''}>${esc(n)}</option>`).join('')}
+          </select>
+          <select class="tep-sel" id="tep-type-${sid}" onchange="tepTypeChange('${sid}',this.value)">
+            <option value="today"${!t.isNext&&t.base!=='issue'?' selected':''}>오늘 할일</option>
+            <option value="nextweek"${t.isNext?' selected':''}>차주 예정</option>
+            <option value="issue"${t.base==='issue'?' selected':''}>이슈사항</option>
+          </select>
+        </div>
+        <div class="tep-row" id="tep-date-row-${sid}" style="${t.isNext?'':'display:none'}">
+          <label style="font-size:11px;color:var(--text3);white-space:nowrap;align-self:center">예정일</label>
+          <input type="date" class="tep-sel" id="tep-date-${sid}" value="${t.scheduledDate||''}">
+        </div>
+        <div class="tep-actions">
+          <button class="tep-cancel" onclick="cancelInlineEdit('${sid}')">취소</button>
+          <button class="tep-save" onclick="commitInlineEdit('${sid}')">저장</button>
+        </div>
+      </div>
+      <div class="task-chips" id="tep-chips-${sid}">
         <span class="pri-dot" style="background:${PRI_COLOR[t.pri||'mid']}"></span>
         ${chips}
       </div>
@@ -763,26 +808,64 @@ function dDrop(ev,targetId){
 }
 function dEnd(){document.querySelectorAll('.task-card').forEach(c=>c.classList.remove('dragging','drag-over'));dragId=null}
 
+function groupByClient(items){
+  const order=[];
+  const map={};
+  items.forEach(t=>{
+    const key=t.client||'__none__';
+    if(!map[key]){map[key]=[];order.push(key);}
+    map[key].push(t);
+  });
+  return order.map(k=>({client:k==='__none__'?'':k,tasks:map[k]}));
+}
+
 function renderReport(){
   const tasks=S.tasks[wk]||[];
   const body=document.getElementById('report-body');
   if(!body)return;
   body.innerHTML=SEC_ORDER.map(s=>{
     const items=tasks.filter(t=>taskSec(t)===s);
+    if(!items.length){
+      return `<div class="rs-card">
+        <div class="rs-head"><span class="rs-dot" style="background:${SEC_DOT[s]}"></span>${SEC_LBL[s]}</div>
+        <div class="rs-none">없음</div>
+      </div>`;
+    }
+    const groups=groupByClient(items);
+    const rows=groups.map(g=>{
+      if(g.client){
+        return `<div style="margin-bottom:6px">
+          <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:3px">${esc(g.client)}</div>
+          ${g.tasks.map(t=>`<div class="rs-item" style="padding-left:10px">- ${esc(t.content)}</div>`).join('')}
+        </div>`;
+      }
+      return g.tasks.map(t=>`<div class="rs-item">- ${esc(t.content)}</div>`).join('');
+    }).join('');
     return `<div class="rs-card">
       <div class="rs-head"><span class="rs-dot" style="background:${SEC_DOT[s]}"></span>${SEC_LBL[s]}</div>
-      ${items.length?items.map(t=>`<div class="rs-item">- ${t.client?`<strong style="font-weight:500">${esc(t.client)}</strong> : `:''}${esc(t.content)}</div>`).join(''):'<div class="rs-none">없음</div>'}
+      ${rows}
     </div>`;
   }).join('');
 }
+
 function buildTxt(){
   const tasks=S.tasks[wk]||[];
   let lines=[`<${getFullLabel(wk)}>\n`];
   SEC_ORDER.forEach(s=>{
     lines.push(`● ${SEC_LBL[s]}`);
     const items=tasks.filter(t=>taskSec(t)===s);
-    if(!items.length)lines.push('');
-    else items.forEach(t=>lines.push(t.client?`- ${t.client} : ${t.content}`:`- ${t.content}`));
+    if(!items.length){
+      lines.push('');
+    } else {
+      const groups=groupByClient(items);
+      groups.forEach(g=>{
+        if(g.client){
+          lines.push(`- ${g.client} : ${g.tasks.map(t=>t.content).join(', ')}`);
+        } else {
+          g.tasks.forEach(t=>lines.push(`- ${t.content}`));
+        }
+      });
+    }
     lines.push('');
   });
   return lines.join('\n');
