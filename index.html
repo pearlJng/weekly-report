@@ -450,7 +450,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL='https://hjrohgwwzfeupnzjunrk.supabase.co';
-const SUPABASE_KEY='sb_publishable_aEONiQJfvs9tyPZyssUGrg_3Iqhkfg1';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhqcm9oZ3d3emZldXBuemp1bnJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMjQ0NzQsImV4cCI6MjA5MDYwMDQ3NH0.9HixjJaJy-7bxv9Q7DsDR68fPkuT5Jmh5EEfL62V_lY';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 const DAYS=['일','월','화','수','목','금','토'];
@@ -514,16 +514,19 @@ async function loadFromDB(){
   if(!currentUser)return;
   const uid=currentUser.id;
 
-  const[{data:taskRows},{data:settings}]=await Promise.all([
+  const[taskRes,settingsRes]=await Promise.all([
     sb.from('tasks').select('*').eq('user_id',uid),
-    sb.from('user_settings').select('*').eq('user_id',uid).single()
+    sb.from('user_settings').select('*').eq('user_id',uid).maybeSingle()
   ]);
 
+  if(taskRes.error)console.error('tasks error:',taskRes.error);
+  if(settingsRes.error)console.error('settings error:',settingsRes.error);
+
   S.tasks={};
-  (taskRows||[]).forEach(r=>{
+  (taskRes.data||[]).forEach(r=>{
     if(!S.tasks[r.week_key])S.tasks[r.week_key]=[];
     S.tasks[r.week_key].push({
-      id:r.id,content:r.content,client:r.client||'',
+      id:String(r.id),content:r.content||'',client:r.client||'',
       base:r.base||'etc',pri:r.pri||'mid',
       done:r.done||false,isNext:r.is_next||false,
       date:r.date||localDate(new Date()),
@@ -534,13 +537,14 @@ async function loadFromDB(){
     });
   });
 
+  const settings=settingsRes.data;
   if(settings){
     S.clients=settings.clients||{};
     S.username=settings.username||'';
   }
 }
 
-async function saveTaskToDB(t, weekKey){
+async function saveTaskToDB(t,weekKey){
   if(!currentUser)return;
   const targetWk=weekKey||wk;
   const{error}=await sb.from('tasks').upsert({
@@ -550,14 +554,14 @@ async function saveTaskToDB(t, weekKey){
     carried_from:t.carriedFrom||null,scheduled_date:t.scheduledDate||'',
     task_order:t.order||0,files:t.files||[]
   });
-  if(error){console.error(error);setSaveDot(false);}
+  if(error){console.error('saveTask error:',error);setSaveDot(false);}
   else setSaveDot(true);
 }
 
 async function deleteTaskFromDB(id){
   if(!currentUser)return;
   const{error}=await sb.from('tasks').delete().eq('id',id).eq('user_id',currentUser.id);
-  if(error)console.error(error);
+  if(error)console.error('deleteTask error:',error);
   else setSaveDot(true);
 }
 
@@ -566,7 +570,7 @@ async function saveSettingsToDB(){
   const{error}=await sb.from('user_settings').upsert({
     user_id:currentUser.id,clients:S.clients,username:S.username||''
   });
-  if(error){console.error(error);setSaveDot(false);}
+  if(error){console.error('saveSettings error:',error);setSaveDot(false);}
   else setSaveDot(true);
 }
 
@@ -1008,27 +1012,34 @@ function init(){
 }
 
 /* ── Boot ── */
-let appReady=false;
-sb.auth.onAuthStateChange(async(event,session)=>{
+async function bootApp(user){
+  currentUser=user;
+  document.getElementById('user-email').textContent=user.email||'';
+  document.getElementById('user-avatar').style.display='none';
+  await loadFromDB();
+  showApp();
+  init();
+  toast('불러왔어요!');
+}
+
+(async()=>{
+  const{data:{session}}=await sb.auth.getSession();
   if(session?.user){
-    currentUser=session.user;
-    document.getElementById('user-email').textContent=session.user.email||'';
-    document.getElementById('user-avatar').style.display='none';
-    if(!appReady){
-      appReady=true;
-      toast('데이터 불러오는 중...');
-      await loadFromDB();
-      showApp();
-      init();
-      toast('로그인됐어요! 👋');
-    }
+    await bootApp(session.user);
   } else {
-    appReady=false;
-    currentUser=null;
-    S={clients:{},tasks:{},username:''};
     showLogin();
   }
-});
+
+  sb.auth.onAuthStateChange(async(event,session)=>{
+    if((event==='SIGNED_IN'||event==='TOKEN_REFRESHED')&&session?.user&&!currentUser){
+      await bootApp(session.user);
+    } else if(event==='SIGNED_OUT'){
+      currentUser=null;
+      S={clients:{},tasks:{},username:''};
+      showLogin();
+    }
+  });
+})();
 </script>
 </body>
 </html>
