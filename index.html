@@ -45,8 +45,8 @@
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html { font-size: 16px; }
-  body { font-family: var(--font); background: var(--bg3); color: var(--text); min-height: 100vh; }
+  html, body { height: 100%; font-size: 16px; }
+  body { font-family: var(--font); background: var(--bg3); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
 
   .shell { max-width: 680px; margin: 0 auto; background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; }
 
@@ -215,6 +215,29 @@
   /* Toast */
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); font-size: 13px; font-weight: 500; padding: 10px 20px; border-radius: 20px; display: none; z-index: 999; font-family: var(--font); white-space: nowrap; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
 
+
+  /* Login */
+  .login-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; min-height:100vh; padding:2rem; background:linear-gradient(160deg,#dff0fa 0%,#eaf4fb 40%,#f5f0f8 100%); }
+  .login-card { background:rgba(255,255,255,0.75); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:0.5px solid rgba(255,255,255,0.9); border-radius:24px; padding:2.5rem 2rem 2rem; width:100%; max-width:380px; text-align:center; box-shadow:0 8px 40px rgba(100,140,180,0.13); }
+  .login-icon { width:48px; height:48px; border-radius:14px; background:#fff; border:0.5px solid rgba(0,0,0,0.08); display:flex; align-items:center; justify-content:center; margin:0 auto 1.25rem; box-shadow:0 2px 8px rgba(0,0,0,0.07); }
+  .login-icon svg { width:22px; height:22px; }
+  .login-logo { font-size:20px; font-weight:600; color:#1a1a1a; letter-spacing:-0.5px; margin-bottom:8px; }
+  .login-sub { font-size:13px; color:#888; margin-bottom:1.75rem; line-height:1.7; }
+  .login-input { width:100%; font-size:14px; padding:12px 14px; border:0.5px solid rgba(0,0,0,0.12); border-radius:12px; background:rgba(255,255,255,0.85); color:#1a1a1a; font-family:var(--font); margin-bottom:10px; text-align:left; transition:border-color .15s; }
+  .login-input:focus { outline:none; border-color:rgba(0,0,0,0.3); background:#fff; }
+  .login-input::placeholder { color:#bbb; }
+  .login-btn { width:100%; padding:13px; font-size:14px; font-weight:600; border-radius:12px; border:none; background:#1a1a1a; color:#fff; cursor:pointer; font-family:var(--font); transition:opacity .15s; margin-top:2px; letter-spacing:-0.2px; }
+  .login-btn:hover { opacity:.85; }
+  .login-btn:disabled { opacity:.4; cursor:not-allowed; }
+  .login-sent { display:none; font-size:13px; color:#1D9E75; margin-top:14px; line-height:1.7; background:#f0faf5; border-radius:10px; padding:12px 14px; }
+  /* User info */
+  .user-info { display:flex; align-items:center; gap:8px; margin-left:auto; }
+  .user-avatar { width:24px; height:24px; border-radius:50%; object-fit:cover; display:none; }
+  .user-email-text { font-size:11px; color:var(--text3); max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .signout-btn { font-size:11px; padding:3px 8px; border:0.5px solid var(--border2); border-radius:var(--radius); background:transparent; cursor:pointer; color:var(--text3); font-family:var(--font); }
+  .signout-btn:hover { color:var(--text); }
+  #app-screen { display:none; flex-direction:column; min-height:100vh; }
+
   @media (max-width: 480px) {
     .pane { padding: 12px 12px 80px; }
     .task-actions { opacity: 1; }
@@ -224,6 +247,26 @@
 </style>
 </head>
 <body>
+<div id="login-screen" style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;background:linear-gradient(160deg,#dff0fa 0%,#eaf4fb 40%,#f5f0f8 100%)">
+  <div class="login-card">
+    <div class="login-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+        <polyline points="10 17 15 12 10 7"/>
+        <line x1="15" y1="12" x2="3" y2="12"/>
+      </svg>
+    </div>
+    <div class="login-logo">주간보고</div>
+    <div class="login-sub">이메일을 입력하면<br>로그인 링크를 보내드려요</div>
+    <input class="login-input" id="login-email" type="email" placeholder="이메일 주소"
+      onkeydown="if(event.key==='Enter'){event.preventDefault();sendMagicLink()}">
+    <button class="login-btn" id="login-btn" onclick="sendMagicLink()">로그인 링크 받기</button>
+    <div class="login-sent" id="login-sent">
+      📨 링크를 보냈어요!<br>이메일을 확인하고 링크를 클릭하면 로그인돼요.
+    </div>
+  </div>
+</div>
+<div id="app-screen">
 <div class="shell">
   <div class="header">
     <div class="header-top">
@@ -233,7 +276,7 @@
         <span class="week-label" id="wkLabel"></span>
         <button class="nav-btn" onclick="chWk(1)">›</button>
       </div>
-      <span class="save-dot" id="saveDot" title="자동저장"></span>
+      <span class="save-dot" id="saveDot" title="자동저장"></span><div class="user-info"><img class="user-avatar" id="user-avatar" src=""><span class="user-email-text" id="user-email"></span><button class="signout-btn" onclick="signOut()">로그아웃</button></div>
     </div>
     <div class="tab-bar">
       <button class="tab active" onclick="setTab(this,'daily')">데일리 업무</button>
@@ -400,9 +443,16 @@
     </div>
   </div>
 </div>
+</div>
 <div class="toast" id="toast"></div>
 
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const SUPABASE_URL='https://hjrohgwwzfeupnzjunrk.supabase.co';
+const SUPABASE_KEY='sb_publishable_aEONiQJfvs9tyPZyssUGrg_3Iqhkfg1';
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
 const DAYS=['일','월','화','수','목','금','토'];
 const SEC_ORDER=['gov-done','sub-done','gov-next','sub-next','issue','etc'];
 const SEC_LBL={'gov-done':'정부/민간 금주 완료 업무','sub-done':'구독제 금주 완료 업무','gov-next':'정부/민간 차주 예정 업무','sub-next':'구독제 차주 예정 업무','issue':'이슈사항','etc':'기타'};
@@ -412,90 +462,114 @@ const BASE_S={'gov':'정부/민간','sub':'구독제','issue':'이슈','etc':'�
 const PRI_COLOR={'high':'#E24B4A','mid':'#EF9F27','low':'#97C459'};
 
 let wkOff=0,wk='',todayStr='';
-let S={clients:{},tasks:{}};
+let S={clients:{},tasks:{},username:''};
 let curView='day';
 let dragId=null;
 let chartW=null,chartC=null;
+let currentUser=null;
+let saving=false;
 
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;')}
-function load(){try{const r=localStorage.getItem('wr6');if(r)S=JSON.parse(r)}catch(_){}}
-function save(){
-  try{localStorage.setItem('wr6',JSON.stringify(S))}catch(_){}
-  const d=document.getElementById('saveDot');
-  d.style.background='#639922';
-  setTimeout(()=>d.style.background='#639922',1000);
-}
-function toast(m){
-  const t=document.getElementById('toast');
-  t.textContent=m;t.style.display='block';
-  setTimeout(()=>t.style.display='none',2000);
-}
-
-function localDate(d){
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-}
-function getWkKey2(off){
-  const d=new Date();
-  const dow=d.getDay();
-  d.setDate(d.getDate()-(dow===0?6:dow-1)+off*7);
-  return localDate(d);
-}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2500)}
+function localDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function getWkKey2(off){const d=new Date();const dow=d.getDay();d.setDate(d.getDate()-(dow===0?6:dow-1)+off*7);return localDate(d)}
 function getWkLabel(k){const d=new Date(k+'T00:00:00');return `${d.getMonth()+1}월 ${Math.ceil(d.getDate()/7)}주차`}
 function getFullLabel(k){const d=new Date(k+'T00:00:00');return `${S.username||'홍길동'} ${d.getMonth()+1}월 ${Math.ceil(d.getDate()/7)}주차 주간보고`}
 function fmtD(dk){const d=new Date(dk+'T00:00:00');return `${d.getMonth()+1}/${d.getDate()} (${DAYS[d.getDay()]})`}
+function mkId(){return 'id_'+Date.now()+'_'+Math.floor(Math.random()*100000)}
+function setSaveDot(ok){const d=document.getElementById('saveDot');if(d)d.style.background=ok?'#639922':'#E24B4A'}
 
-function chWk(d){wkOff+=d;init()}
+/* ── Auth ── */
+function showLogin(){
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('app-screen').style.display='none';
+}
+function showApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app-screen').style.display='flex';
+}
+async function sendMagicLink(){
+  const email=document.getElementById('login-email').value.trim();
+  if(!email){document.getElementById('login-email').focus();return;}
+  const btn=document.getElementById('login-btn');
+  btn.disabled=true;btn.textContent='전송 중...';
+  const{error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.href}});
+  if(error){
+    toast('오류: '+error.message);
+    btn.disabled=false;btn.textContent='로그인 링크 받기';
+  } else {
+    btn.style.display='none';
+    document.getElementById('login-sent').style.display='block';
+  }
+}
+async function signOut(){
+  await sb.auth.signOut();
+  currentUser=null;
+  S={clients:{},tasks:{},username:''};
+  showLogin();
+}
 
-function handleKey(ev){if(ev.key==='Enter'&&!ev.isComposing){addTask()}}
+/* ── Supabase DB ── */
+async function loadFromDB(){
+  if(!currentUser)return;
+  const uid=currentUser.id;
 
-let editId=null;
-function openEdit(id){
-  const t=(S.tasks[wk]||[]).find(x=>String(x.id)===String(id));
-  if(!t)return;
-  editId=String(id);
-  document.getElementById('e-content').value=t.content||'';
-  document.getElementById('e-date').value=t.date||todayStr;
-  document.getElementById('e-pri').value=t.pri||'mid';
-  document.getElementById('e-type').value=t.isNext?'nextweek':'today';
-  const sel=document.getElementById('e-client');
-  sel.innerHTML='<option value="">선택 안함 (기타)</option>';
-  Object.keys(S.clients).forEach(n=>{
-    const o=document.createElement('option');
-    o.value=n;o.textContent=n;
-    if(n===t.client)o.selected=true;
-    sel.appendChild(o);
+  const[{data:taskRows},{data:settings}]=await Promise.all([
+    sb.from('tasks').select('*').eq('user_id',uid),
+    sb.from('user_settings').select('*').eq('user_id',uid).single()
+  ]);
+
+  S.tasks={};
+  (taskRows||[]).forEach(r=>{
+    if(!S.tasks[r.week_key])S.tasks[r.week_key]=[];
+    S.tasks[r.week_key].push({
+      id:r.id,content:r.content,client:r.client||'',
+      base:r.base||'etc',pri:r.pri||'mid',
+      done:r.done||false,isNext:r.is_next||false,
+      date:r.date||localDate(new Date()),
+      carriedFrom:r.carried_from||null,
+      scheduledDate:r.scheduled_date||'',
+      order:r.task_order||0,
+      files:r.files||[]
+    });
   });
-  document.getElementById('editModal').classList.add('open');
-  setTimeout(()=>document.getElementById('e-content').focus(),100);
-}
-function closeEdit(ev){
-  if(ev&&ev.target!==document.getElementById('editModal'))return;
-  document.getElementById('editModal').classList.remove('open');
-  editId=null;
-}
-function saveEdit(){
-  const t=(S.tasks[wk]||[]).find(x=>String(x.id)===String(editId));
-  if(!t)return;
-  const content=document.getElementById('e-content').value.trim();
-  if(!content)return;
-  const clientVal=document.getElementById('e-client').value;
-  const typeVal=document.getElementById('e-type').value;
-  t.content=content;
-  t.date=document.getElementById('e-date').value||todayStr;
-  t.pri=document.getElementById('e-pri').value;
-  t.isNext=(typeVal==='nextweek');
-  t.client=clientVal||'';
-  t.base=(typeVal==='issue')?'issue':clientVal?(S.clients[clientVal]||'etc'):'etc';
-  document.getElementById('editModal').classList.remove('open');
-  editId=null;
-  save();renderDaily();toast('수정됐어요');
+
+  if(settings){
+    S.clients=settings.clients||{};
+    S.username=settings.username||'';
+  }
 }
 
-function resolveSec(base,type){
-  if(base==='issue')return 'issue';
-  if(base==='etc')return 'etc';
-  return base+(type==='nextweek'?'-next':'-done');
+async function saveTaskToDB(t){
+  if(!currentUser)return;
+  const{error}=await sb.from('tasks').upsert({
+    id:t.id,user_id:currentUser.id,week_key:wk,
+    content:t.content,client:t.client,base:t.base,pri:t.pri,
+    done:t.done,is_next:t.isNext,date:t.date,
+    carried_from:t.carriedFrom,scheduled_date:t.scheduledDate||'',
+    task_order:t.order||0,files:t.files||[]
+  });
+  if(error){console.error(error);setSaveDot(false);}
+  else setSaveDot(true);
 }
+
+async function deleteTaskFromDB(id){
+  if(!currentUser)return;
+  const{error}=await sb.from('tasks').delete().eq('id',id).eq('user_id',currentUser.id);
+  if(error)console.error(error);
+  else setSaveDot(true);
+}
+
+async function saveSettingsToDB(){
+  if(!currentUser)return;
+  const{error}=await sb.from('user_settings').upsert({
+    user_id:currentUser.id,clients:S.clients,username:S.username||''
+  });
+  if(error){console.error(error);setSaveDot(false);}
+  else setSaveDot(true);
+}
+
+/* ── Task logic ── */
 function taskSec(t){
   if(t.base==='issue')return 'issue';
   if(t.base==='etc')return 'etc';
@@ -503,6 +577,14 @@ function taskSec(t){
   if(t.done)return t.base+'-done';
   return t.base+'-next';
 }
+function resolveSec(base,type){
+  if(base==='issue')return 'issue';
+  if(base==='etc')return 'etc';
+  return base+(type==='nextweek'?'-next':'-done');
+}
+
+function chWk(d){wkOff+=d;init()}
+function handleKey(ev){if(ev.key==='Enter'&&!ev.isComposing){addTask()}}
 
 function onCC(){
   const v=document.getElementById('f-client').value;
@@ -522,24 +604,19 @@ function renderClientSel(selectVal){
     if(selectVal&&n===selectVal)o.selected=true;
     sel.appendChild(o);
   });
-  const sep=document.createElement('option');
-  sep.disabled=true;sep.textContent='──────────';
-  sel.appendChild(sep);
-  const add=document.createElement('option');
-  add.value='__new__';add.textContent='+ 신규 고객사 추가';
-  sel.appendChild(add);
+  const sep=document.createElement('option');sep.disabled=true;sep.textContent='──────────';sel.appendChild(sep);
+  const add=document.createElement('option');add.value='__new__';add.textContent='+ 신규 고객사 추가';sel.appendChild(add);
 }
 
-function saveInlineClient(){
+async function saveInlineClient(){
   const name=document.getElementById('nci-name').value.trim();
   if(!name){document.getElementById('nci-name').focus();return;}
   const sec=document.getElementById('nci-sec').value;
   S.clients[name]=sec;
   document.getElementById('nci-name').value='';
   document.getElementById('new-client-inline').classList.remove('open');
-  save();
-  renderClientSel(name);
-  renderClSettings();
+  await saveSettingsToDB();
+  renderClientSel(name);renderClSettings();
   toast(`'${name}' 고객사가 추가됐어요`);
 }
 function cancelInlineClient(){
@@ -547,48 +624,56 @@ function cancelInlineClient(){
   document.getElementById('new-client-inline').classList.remove('open');
 }
 
-function mkId(){return 'id_'+Date.now()+'_'+Math.floor(Math.random()*100000)}
-
-function addTask(){
+async function addTask(){
   const dateVal=document.getElementById('f-date').value||todayStr;
   let clientVal=document.getElementById('f-client').value;
   const type=document.getElementById('f-type').value;
   const pri=document.getElementById('f-pri').value;
   const content=document.getElementById('f-content').value.trim();
   if(!content)return;
-
-  let client,base,isNext,isIssue;
-  isIssue=(type==='issue');
-  isNext=(type==='nextweek');
-
-  if(!clientVal){
-    client='';
-    base=isIssue?'issue':'etc';
-  } else {
-    client=clientVal;
-    base=isIssue?'issue':(S.clients[clientVal]||'etc');
-  }
-
+  const isIssue=(type==='issue'),isNext=(type==='nextweek');
+  let client,base;
+  if(!clientVal){client='';base=isIssue?'issue':'etc';}
+  else{client=clientVal;base=isIssue?'issue':(S.clients[clientVal]||'etc');}
   if(!S.tasks[wk])S.tasks[wk]=[];
-  S.tasks[wk].push({
-    id:mkId(),
-    content,client,base,pri,
-    done:false,
-    isNext,
-    date:dateVal,
-    carriedFrom:null,
-    order:S.tasks[wk].length,
-    files:[]
-  });
+  const t={id:mkId(),content,client,base,pri,done:false,isNext,date:dateVal,carriedFrom:null,scheduledDate:'',order:S.tasks[wk].length,files:[]};
+  S.tasks[wk].push(t);
   document.getElementById('f-content').value='';
-  save();renderDaily();
+  renderDaily();
+  await saveTaskToDB(t);
 }
 
-function tepTypeChange(id, val){
+async function toggleDone(id){
+  const t=(S.tasks[wk]||[]).find(x=>String(x.id)===String(id));
+  if(!t)return;
+  t.done=!t.done;
+  renderDaily();
+  await saveTaskToDB(t);
+}
+async function delTask(id){
+  S.tasks[wk]=(S.tasks[wk]||[]).filter(x=>String(x.id)!==String(id));
+  renderDaily();toast('삭제됐어요');
+  await deleteTaskFromDB(id);
+}
+async function carryNext(id){
+  const t=(S.tasks[wk]||[]).find(x=>String(x.id)===String(id));
+  if(!t)return;
+  const nwk=getWkKey2(wkOff+1);
+  if(!S.tasks[nwk])S.tasks[nwk]=[];
+  const nt={...t,id:mkId(),date:nwk,carriedFrom:wk,done:false,isNext:true,order:S.tasks[nwk].length};
+  S.tasks[nwk].push(nt);
+  S.tasks[wk]=S.tasks[wk].filter(x=>String(x.id)!==String(id));
+  renderDaily();toast('차주로 이월됐어요');
+  await Promise.all([deleteTaskFromDB(id),saveTaskToDB({...nt,_wk:nwk})]);
+  const prev_wk=wk;wk=nwk;await saveTaskToDB(nt);wk=prev_wk;
+}
+
+function tepTypeChange(id,val){
   const row=document.getElementById('tep-date-row-'+id);
   if(row)row.style.display=val==='nextweek'?'':'none';
 }
-function startInlineEdit(id, textEl){
+
+function startInlineEdit(id,textEl){
   const t=(S.tasks[wk]||[]).find(x=>String(x.id)===String(id));
   if(!t||t.done)return;
   const card=textEl.closest('.task-card');
@@ -602,7 +687,7 @@ function startInlineEdit(id, textEl){
   if(chips)chips.style.display='none';
   setTimeout(()=>{contentEl.focus();contentEl.select();},50);
 }
-function commitInlineEdit(id){
+async function commitInlineEdit(id){
   const t=(S.tasks[wk]||[]).find(x=>String(x.id)===String(id));
   if(!t)return;
   const contentEl=document.getElementById('tep-content-'+id);
@@ -610,16 +695,15 @@ function commitInlineEdit(id){
   const typeEl=document.getElementById('tep-type-'+id);
   const dateEl=document.getElementById('tep-date-'+id);
   if(!contentEl)return;
-  const val=contentEl.value.trim();
-  if(!val)return;
+  const val=contentEl.value.trim();if(!val)return;
   const clientVal=clientEl?clientEl.value:'';
   const typeVal=typeEl?typeEl.value:'today';
-  t.content=val;
-  t.client=clientVal;
+  t.content=val;t.client=clientVal;
   t.base=(typeVal==='issue')?'issue':clientVal?(S.clients[clientVal]||'etc'):'etc';
   t.isNext=(typeVal==='nextweek');
   t.scheduledDate=(typeVal==='nextweek'&&dateEl)?dateEl.value:'';
-  save();renderDaily();toast('수정됐어요');
+  renderDaily();toast('수정됐어요');
+  await saveTaskToDB(t);
 }
 function cancelInlineEdit(id){
   const panel=document.getElementById('tep-'+id);
@@ -631,66 +715,38 @@ function cancelInlineEdit(id){
   if(textEl)textEl.classList.remove('editing');
   if(card)card.setAttribute('draggable','true');
 }
-function toggleDone(id){
-  const t=(S.tasks[wk]||[]).find(x=>String(x.id)===String(id));
-  if(t){t.done=!t.done;save();renderDaily();}
-}
-function delTask(id){
-  S.tasks[wk]=(S.tasks[wk]||[]).filter(x=>String(x.id)!==String(id));
-  save();renderDaily();toast('삭제됐어요');
-}
-function carryNext(id){
-  const t=(S.tasks[wk]||[]).find(x=>String(x.id)===String(id));
-  if(!t)return;
-  const nwk=getWkKey2(wkOff+1);
-  if(!S.tasks[nwk])S.tasks[nwk]=[];
-  S.tasks[nwk].push({...t,id:mkId(),date:nwk,carriedFrom:wk,done:false,isNext:true,order:S.tasks[nwk].length});
-  S.tasks[wk]=S.tasks[wk].filter(x=>String(x.id)!==String(id));
-  save();renderDaily();toast('차주로 이월됐어요');
-}
 
 function attachFile(id){
-  const input=document.createElement('input');
-  input.type='file';
-  input.accept='image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip';
-  input.multiple=true;
+  const input=document.createElement('input');input.type='file';
+  input.accept='image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip';input.multiple=true;
   input.onchange=()=>{
-    const files=Array.from(input.files);
-    if(!files.length)return;
-    const t=(S.tasks[wk]||[]).find(x=>String(x.id)===String(id));
-    if(!t)return;
+    const files=Array.from(input.files);if(!files.length)return;
+    const t=(S.tasks[wk]||[]).find(x=>String(x.id)===String(id));if(!t)return;
     if(!t.files)t.files=[];
     let pending=files.length;
     files.forEach(file=>{
-      if(file.size>5*1024*1024){toast('5MB 이하 파일만 첨부 가능해요');pending--;if(!pending){save();renderDaily();}return;}
+      if(file.size>5*1024*1024){toast('5MB 이하만 첨부 가능해요');pending--;if(!pending){renderDaily();}return;}
       const reader=new FileReader();
-      reader.onload=e=>{
+      reader.onload=async e=>{
         t.files.push({name:file.name,type:file.type,data:e.target.result});
-        pending--;
-        if(!pending){save();renderDaily();toast('파일이 첨부됐어요');}
-      };
-      reader.readAsDataURL(file);
+        pending--;if(!pending){renderDaily();toast('파일이 첨부됐어요');await saveTaskToDB(t);}
+      };reader.readAsDataURL(file);
     });
-  };
-  input.click();
+  };input.click();
 }
-function removeFile(taskId,fileIdx){
+async function removeFile(taskId,fileIdx){
   const t=(S.tasks[wk]||[]).find(x=>String(x.id)===String(taskId));
   if(!t||!t.files)return;
-  t.files.splice(fileIdx,1);
-  save();renderDaily();
+  t.files.splice(fileIdx,1);renderDaily();await saveTaskToDB(t);
 }
 function openFile(taskId,fileIdx){
   const t=(S.tasks[wk]||[]).find(x=>String(x.id)===String(taskId));
   if(!t||!t.files||!t.files[fileIdx])return;
-  const f=t.files[fileIdx];
-  const a=document.createElement('a');
-  a.href=f.data;a.download=f.name;a.click();
+  const f=t.files[fileIdx];const a=document.createElement('a');a.href=f.data;a.download=f.name;a.click();
 }
 
 function renderCard(t){
-  const sec=taskSec(t);
-  const isIssue=(t.base==='issue');
+  const sec=taskSec(t);const isIssue=(t.base==='issue');
   const chips=[
     t.client?`<span class="chip chip-client">${esc(t.client)}</span>`:'',
     `<span class="chip ${SEC_CHIP[sec]||'chip-etc'}">${BASE_S[t.base]||''}</span>`,
@@ -705,11 +761,7 @@ function renderCard(t){
     const isImg=f.type&&f.type.startsWith('image/');
     const thumb=isImg?`<img class="attach-img-thumb" src="${f.data}">`:
       `<span style="font-size:11px;flex-shrink:0">📎</span>`;
-    return `<div class="attach-item" onclick="openFile('${sid}',${i})">
-      ${thumb}
-      <span class="attach-name">${esc(f.name)}</span>
-      <span class="attach-del" onclick="event.stopPropagation();removeFile('${sid}',${i})">✕</span>
-    </div>`;
+    return `<div class="attach-item" onclick="openFile('${sid}',${i})">${thumb}<span class="attach-name">${esc(f.name)}</span><span class="attach-del" onclick="event.stopPropagation();removeFile('${sid}',${i})">✕</span></div>`;
   }).join('')}</div>`:'';
   const attachBtn=isIssue?`<button class="ia" onclick="attachFile('${sid}')" title="파일 첨부">⊕</button>`:'';
   return `<div class="task-card${t.done?' done-card':''}" draggable="true" data-id="${sid}"
@@ -747,11 +799,7 @@ function renderCard(t){
       </div>
       ${fileList}
     </div>
-    <div class="task-actions">
-      ${attachBtn}
-      ${carryBtn}
-      <button class="ia del" onclick="delTask('${sid}')">✕</button>
-    </div>
+    <div class="task-actions">${attachBtn}${carryBtn}<button class="ia del" onclick="delTask('${sid}')">✕</button></div>
   </div>`;
 }
 
@@ -764,7 +812,6 @@ function renderDaily(){
   const list=document.getElementById('task-list');
   const tasks=S.tasks[wk]||[];
   if(!tasks.length){list.innerHTML='<div class="empty">아직 등록된 업무가 없어요.<br>위에서 업무를 추가해보세요.</div>';return;}
-
   let groups={};
   if(curView==='week'){
     tasks.forEach(t=>{const g=t.isNext?'__next__':t.date;(groups[g]||(groups[g]=[])).push(t)});
@@ -774,284 +821,181 @@ function renderDaily(){
     if(td.length)groups[todayStr]=td;
     if(nx.length)groups['__next__']=nx;
   }
-
   const keys=Object.keys(groups).sort((a,b)=>{
     if(a==='__next__')return 1;if(b==='__next__')return -1;return a<b?-1:1;
   });
-
   list.innerHTML=keys.map(k=>{
     const items=[...groups[k]].sort((a,b)=>(a.order||0)-(b.order||0));
     const lbl=k==='__next__'?'차주 예정':fmtD(k);
     const done=items.filter(t=>t.done).length;
-    return `<div class="day-group">
-      <div class="day-head">
-        <span class="day-lbl">${lbl}</span>
-        <span class="day-rule"></span>
-        <span class="day-count">${done}/${items.length}</span>
-      </div>
-      ${items.map(t=>renderCard(t)).join('')}
-    </div>`;
+    return `<div class="day-group"><div class="day-head"><span class="day-lbl">${lbl}</span><span class="day-rule"></span><span class="day-count">${done}/${items.length}</span></div>${items.map(t=>renderCard(t)).join('')}</div>`;
   }).join('');
 }
 
 function dStart(ev,id){dragId=id;ev.currentTarget.classList.add('dragging')}
 function dOver(ev,id){ev.preventDefault();if(id===dragId)return;document.querySelectorAll('.task-card').forEach(c=>c.classList.remove('drag-over'));ev.currentTarget.classList.add('drag-over')}
-function dDrop(ev,targetId){
+async function dDrop(ev,targetId){
   ev.preventDefault();document.querySelectorAll('.task-card').forEach(c=>c.classList.remove('drag-over'));
   if(String(dragId)===String(targetId))return;
   const tasks=S.tasks[wk]||[];
   const fi=tasks.findIndex(t=>String(t.id)===String(dragId)),ti=tasks.findIndex(t=>String(t.id)===String(targetId));
   if(fi<0||ti<0)return;
-  const [item]=tasks.splice(fi,1);tasks.splice(ti,0,item);
+  const[item]=tasks.splice(fi,1);tasks.splice(ti,0,item);
   tasks.forEach((t,i)=>t.order=i);
-  save();renderDaily();
+  renderDaily();
+  await Promise.all(tasks.map(t=>saveTaskToDB(t)));
 }
 function dEnd(){document.querySelectorAll('.task-card').forEach(c=>c.classList.remove('dragging','drag-over'));dragId=null}
 
 function groupByClient(items){
-  const order=[];
-  const map={};
-  items.forEach(t=>{
-    const key=t.client||'__none__';
-    if(!map[key]){map[key]=[];order.push(key);}
-    map[key].push(t);
-  });
+  const order=[],map={};
+  items.forEach(t=>{const key=t.client||'__none__';if(!map[key]){map[key]=[];order.push(key);}map[key].push(t);});
   return order.map(k=>({client:k==='__none__'?'':k,tasks:map[k]}));
 }
 
 function renderReport(){
   const tasks=S.tasks[wk]||[];
-  const body=document.getElementById('report-body');
-  if(!body)return;
+  const body=document.getElementById('report-body');if(!body)return;
   body.innerHTML=SEC_ORDER.map(s=>{
     const items=tasks.filter(t=>taskSec(t)===s);
-    if(!items.length){
-      return `<div class="rs-card">
-        <div class="rs-head"><span class="rs-dot" style="background:${SEC_DOT[s]}"></span>${SEC_LBL[s]}</div>
-        <div class="rs-none">없음</div>
-      </div>`;
-    }
+    if(!items.length)return `<div class="rs-card"><div class="rs-head"><span class="rs-dot" style="background:${SEC_DOT[s]}"></span>${SEC_LBL[s]}</div><div class="rs-none">없음</div></div>`;
     const groups=groupByClient(items);
     const rows=groups.map(g=>{
-      if(g.client){
-        return `<div style="margin-bottom:6px">
-          <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:3px">${esc(g.client)}</div>
-          ${g.tasks.map(t=>`<div class="rs-item" style="padding-left:10px">- ${esc(t.content)}</div>`).join('')}
-        </div>`;
-      }
+      if(g.client)return `<div style="margin-bottom:6px"><div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:3px">${esc(g.client)}</div>${g.tasks.map(t=>`<div class="rs-item" style="padding-left:10px">- ${esc(t.content)}</div>`).join('')}</div>`;
       return g.tasks.map(t=>`<div class="rs-item">- ${esc(t.content)}</div>`).join('');
     }).join('');
-    return `<div class="rs-card">
-      <div class="rs-head"><span class="rs-dot" style="background:${SEC_DOT[s]}"></span>${SEC_LBL[s]}</div>
-      ${rows}
-    </div>`;
+    return `<div class="rs-card"><div class="rs-head"><span class="rs-dot" style="background:${SEC_DOT[s]}"></span>${SEC_LBL[s]}</div>${rows}</div>`;
   }).join('');
 }
-
 function buildTxt(){
   const tasks=S.tasks[wk]||[];
   let lines=[`<${getFullLabel(wk)}>\n`];
   SEC_ORDER.forEach(s=>{
     lines.push(`● ${SEC_LBL[s]}`);
     const items=tasks.filter(t=>taskSec(t)===s);
-    if(!items.length){
-      lines.push('');
-    } else {
-      const groups=groupByClient(items);
-      groups.forEach(g=>{
-        if(g.client){
-          lines.push(`- ${g.client} : ${g.tasks.map(t=>t.content).join(', ')}`);
-        } else {
-          g.tasks.forEach(t=>lines.push(`- ${t.content}`));
-        }
-      });
-    }
+    if(!items.length)lines.push('');
+    else{const groups=groupByClient(items);groups.forEach(g=>{if(g.client)lines.push(`- ${g.client} : ${g.tasks.map(t=>t.content).join(', ')}`);else g.tasks.forEach(t=>lines.push(`- ${t.content}`));});}
     lines.push('');
   });
   return lines.join('\n');
 }
 function copyReport(){navigator.clipboard.writeText(buildTxt()).then(()=>toast('복사됐어요!'))}
 
-function renderMonthly(){
-  const now=new Date();
-  const month=now.getMonth(),year=now.getFullYear();
-
-  const weekKeys=[];
-  const firstDay=new Date(year,month,1);
-  const lastDay=new Date(year,month+1,0);
-  const cur=new Date(firstDay);
-  const dow=cur.getDay();
-  cur.setDate(cur.getDate()-(dow===0?6:dow-1));
-  while(cur<=lastDay){
-    const wKey=localDate(cur);
-    if(!weekKeys.includes(wKey))weekKeys.push(wKey);
-    cur.setDate(cur.getDate()+7);
-  }
-
-  const allTasks=[];
-  weekKeys.forEach(wKey=>(S.tasks[wKey]||[]).forEach(t=>allTasks.push({...t,wKey})));
-
-  const realTasks=allTasks.filter(t=>!t.isNext);
-  const total=realTasks.length;
-  const done=realTasks.filter(t=>t.done).length;
-  const rate=total?Math.round(done/total*100):0;
-  const clients=new Set(realTasks.map(t=>t.client).filter(Boolean)).size;
-
-  document.getElementById('monthly-stats').innerHTML=`
-    <div class="stat-card"><div class="stat-lbl">총 업무</div><div class="stat-val">${total}</div><div class="stat-sub">이번 달 등록</div></div>
-    <div class="stat-card"><div class="stat-lbl">완료</div><div class="stat-val">${done}</div><div class="stat-sub">처리됨</div></div>
-    <div class="stat-card"><div class="stat-lbl">완료율</div><div class="stat-val">${rate}%</div><div class="stat-sub">달성률</div></div>
-    <div class="stat-card"><div class="stat-lbl">활성 고객사</div><div class="stat-val">${clients}</div><div class="stat-sub">이번 달</div></div>`;
-
-  const wLabels=weekKeys.map((_,i)=>`${i+1}주차`);
-  const wDone=weekKeys.map(k=>(S.tasks[k]||[]).filter(t=>!t.isNext&&t.done).length);
-  const wTotal=weekKeys.map(k=>(S.tasks[k]||[]).filter(t=>!t.isNext).length);
-
-  if(chartW)chartW.destroy();
-  chartW=new Chart(document.getElementById('chart-weekly'),{
-    type:'bar',
-    data:{labels:wLabels,datasets:[
-      {label:'완료',data:wDone,backgroundColor:'#1D9E75',borderRadius:4},
-      {label:'전체',data:wTotal,backgroundColor:'rgba(0,0,0,0.08)',borderRadius:4}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:12}}},y:{beginAtZero:true,ticks:{stepSize:1,font:{size:12}},grid:{color:'rgba(0,0,0,0.05)'}}}}
-  });
-
-  const clientMap={};
-  realTasks.forEach(t=>{if(t.client)clientMap[t.client]=(clientMap[t.client]||0)+1});
-  const cNames=Object.keys(clientMap).sort((a,b)=>clientMap[b]-clientMap[a]);
-  const cVals=cNames.map(n=>clientMap[n]);
-  const colors=['#378ADD','#1D9E75','#D85A30','#D4537E','#7F77DD','#BA7517','#639922','#888780'];
-
-  const barH=Math.max(180, cNames.length*44+40);
-  document.getElementById('client-chart-wrap').style.height=barH+'px';
-
-  if(chartC)chartC.destroy();
-  chartC=new Chart(document.getElementById('chart-client'),{
-    type:'bar',
-    data:{labels:cNames,datasets:[{data:cVals,backgroundColor:cNames.map((_,i)=>colors[i%colors.length]),borderRadius:4}]},
-    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{stepSize:1,font:{size:12}},grid:{color:'rgba(0,0,0,0.05)'}},y:{grid:{display:false},ticks:{font:{size:12}}}}}
-  });
-}
-
-function saveName(){
-  const v=document.getElementById('s-username').value.trim();
-  S.username=v||'';
-  save();
-}
-function addClient(){
-  const name=document.getElementById('nc-name').value.trim();
-  const sec=document.getElementById('nc-sec').value;
-  if(!name)return;
-  S.clients[name]=sec;
-  document.getElementById('nc-name').value='';
-  save();renderClSettings();renderClientSel();
-}
-function rmClient(name){
-  delete S.clients[name];
-  save();renderClSettings();renderClientSel();toast('고객사가 삭제됐어요');
-}
-function upClient(name,sec){S.clients[name]=sec;save()}
-function renderClSettings(){
-  const el=document.getElementById('cl-list');
-  const names=Object.keys(S.clients);
-  if(!names.length){
-    el.innerHTML='<div style="padding:12px 16px;font-size:13px;color:var(--text3)">등록된 고객사가 없어요.</div>';
-    return;
-  }
-  const groups=[
-    {key:'gov', label:'정부/민간', dot:'#378ADD'},
-    {key:'sub', label:'구독제',   dot:'#1D9E75'},
-    {key:'issue',label:'이슈사항', dot:'#E24B4A'},
-    {key:'etc', label:'기타',     dot:'#888780'}
-  ];
-  const secOpts=['gov','sub','issue','etc'].map(v=>`<option value="${v}">${{gov:'정부/민간',sub:'구독제',issue:'이슈',etc:'기타'}[v]}</option>`).join('');
-  el.innerHTML=groups.map(g=>{
-    const members=names.filter(n=>S.clients[n]===g.key);
-    if(!members.length)return '';
-    const rows=members.map(n=>`
-      <div class="cl-row">
-        <span class="cl-name">${esc(n)}</span>
-        <select class="cl-sel" onchange="upClient('${esc(n)}',this.value)">
-          ${['gov','sub','issue','etc'].map(v=>`<option value="${v}"${S.clients[n]===v?' selected':''}>${{gov:'정부/민간',sub:'구독제',issue:'이슈',etc:'기타'}[v]}</option>`).join('')}
-        </select>
-        <button class="cl-del" onclick="rmClient('${esc(n)}')">✕</button>
-      </div>`).join('');
-    return `<div class="cl-group">
-      <div class="cl-group-head">
-        <span class="cl-group-dot" style="background:${g.dot}"></span>
-        <span class="cl-group-label">${g.label}</span>
-        <span class="cl-group-count">${members.length}개</span>
-      </div>
-      ${rows}
-    </div>`;
-  }).join('');
-}
-
 function renderCheckout(){
   const tasks=S.tasks[wk]||[];
   const todayDone=tasks.filter(t=>!t.isNext&&t.date===todayStr&&t.done);
   const todayPending=tasks.filter(t=>!t.isNext&&t.date===todayStr&&!t.done);
-  const preview=document.getElementById('checkout-preview');
-  if(!preview)return;
-
-  const doneHtml=todayDone.length
-    ?todayDone.map(t=>`<div class="rs-item">✓ ${t.client?`<strong style="font-weight:500">${esc(t.client)}</strong> : `:''}${esc(t.content)}</div>`).join('')
-    :`<div class="rs-none">완료한 업무가 없어요</div>`;
-
-  const pendingHtml=todayPending.length
-    ?`<div style="margin-top:12px">
-        <div class="rs-head" style="margin-bottom:6px"><span class="rs-dot" style="background:#EF9F27"></span>미완료</div>
-        ${todayPending.map(t=>`<div class="rs-item" style="color:var(--text2)">- ${t.client?`<strong style="font-weight:500">${esc(t.client)}</strong> : `:''}${esc(t.content)}</div>`).join('')}
-      </div>`:'';
-
-  preview.innerHTML=`
-    <div class="rs-head" style="margin-bottom:2px"><span style="font-size:14px;font-weight:500;color:var(--text)">[퇴근보고]</span></div>
-    <div style="font-size:14px;color:var(--text2);margin-bottom:12px" id="checkout-msg-preview"></div>
-    <div class="rs-head" style="margin-bottom:6px"><span class="rs-dot" style="background:#1D9E75"></span>완료 업무</div>
-    ${doneHtml}
-    ${pendingHtml}`;
-
+  const preview=document.getElementById('checkout-preview');if(!preview)return;
+  const doneHtml=todayDone.length?todayDone.map(t=>`<div class="rs-item">✓ ${t.client?`<strong style="font-weight:500">${esc(t.client)}</strong> : `:''}${esc(t.content)}</div>`).join(''):`<div class="rs-none">완료한 업무가 없어요</div>`;
+  const pendingHtml=todayPending.length?`<div style="margin-top:12px"><div class="rs-head" style="margin-bottom:6px"><span class="rs-dot" style="background:#EF9F27"></span>미완료</div>${todayPending.map(t=>`<div class="rs-item" style="color:var(--text2)">- ${t.client?`<strong style="font-weight:500">${esc(t.client)}</strong> : `:''}${esc(t.content)}</div>`).join('')}</div>`:'';
+  preview.innerHTML=`<div class="rs-head" style="margin-bottom:2px"><span style="font-size:14px;font-weight:500;color:var(--text)">[퇴근보고]</span></div><div style="font-size:14px;color:var(--text2);margin-bottom:12px" id="checkout-msg-preview"></div><div class="rs-head" style="margin-bottom:6px"><span class="rs-dot" style="background:#1D9E75"></span>완료 업무</div>${doneHtml}${pendingHtml}`;
   const msgEl=document.getElementById('checkout-msg-preview');
   if(msgEl)msgEl.textContent=document.getElementById('checkout-msg').value||'퇴근합니다!';
 }
-
 function buildCheckoutTxt(){
   const tasks=S.tasks[wk]||[];
   const msg=document.getElementById('checkout-msg').value.trim()||'퇴근합니다!';
   const todayDone=tasks.filter(t=>!t.isNext&&t.date===todayStr&&t.done);
   const todayPending=tasks.filter(t=>!t.isNext&&t.date===todayStr&&!t.done);
-
-  let lines=[`[퇴근보고] ${msg}`,''];
-  if(todayDone.length){
-    todayDone.forEach(t=>lines.push(`✓ ${t.client?t.client+' : ':''}${t.content}`));
-  } else {
-    lines.push('(완료한 업무 없음)');
-  }
-  if(todayPending.length){
-    lines.push('');
-    lines.push('▸ 미완료');
-    todayPending.forEach(t=>lines.push(`- ${t.client?t.client+' : ':''}${t.content}`));
-  }
+  let lines=[`[퇴근보고] ${msg}`,'']; 
+  if(todayDone.length)todayDone.forEach(t=>lines.push(`✓ ${t.client?t.client+' : ':''}${t.content}`));
+  else lines.push('(완료한 업무 없음)');
+  if(todayPending.length){lines.push('');lines.push('▸ 미완료');todayPending.forEach(t=>lines.push(`- ${t.client?t.client+' : ':''}${t.content}`));}
   return lines.join('\n');
 }
+function copyCheckout(){navigator.clipboard.writeText(buildCheckoutTxt()).then(()=>toast('퇴근보고 복사됐어요!'))}
 
-function copyCheckout(){
-  navigator.clipboard.writeText(buildCheckoutTxt()).then(()=>toast('퇴근보고 복사됐어요!'));
+function renderMonthly(){
+  const now=new Date();const month=now.getMonth(),year=now.getFullYear();
+  const weekKeys=[];const firstDay=new Date(year,month,1);const lastDay=new Date(year,month+1,0);
+  const cur=new Date(firstDay);const dow=cur.getDay();cur.setDate(cur.getDate()-(dow===0?6:dow-1));
+  while(cur<=lastDay){const wKey=localDate(cur);if(!weekKeys.includes(wKey))weekKeys.push(wKey);cur.setDate(cur.getDate()+7);}
+  const allTasks=[];weekKeys.forEach(wKey=>(S.tasks[wKey]||[]).forEach(t=>allTasks.push({...t,wKey})));
+  const realTasks=allTasks.filter(t=>!t.isNext);
+  const total=realTasks.length,done=realTasks.filter(t=>t.done).length,rate=total?Math.round(done/total*100):0;
+  const clients=new Set(realTasks.map(t=>t.client).filter(Boolean)).size;
+  document.getElementById('monthly-stats').innerHTML=`<div class="stat-card"><div class="stat-lbl">총 업무</div><div class="stat-val">${total}</div><div class="stat-sub">이번 달 등록</div></div><div class="stat-card"><div class="stat-lbl">완료</div><div class="stat-val">${done}</div><div class="stat-sub">처리됨</div></div><div class="stat-card"><div class="stat-lbl">완료율</div><div class="stat-val">${rate}%</div><div class="stat-sub">달성률</div></div><div class="stat-card"><div class="stat-lbl">활성 고객사</div><div class="stat-val">${clients}</div><div class="stat-sub">이번 달</div></div>`;
+  const wLabels=weekKeys.map((_,i)=>`${i+1}주차`);
+  const wDone=weekKeys.map(k=>(S.tasks[k]||[]).filter(t=>!t.isNext&&t.done).length);
+  const wTotal=weekKeys.map(k=>(S.tasks[k]||[]).filter(t=>!t.isNext).length);
+  if(chartW)chartW.destroy();
+  chartW=new Chart(document.getElementById('chart-weekly'),{type:'bar',data:{labels:wLabels,datasets:[{label:'완료',data:wDone,backgroundColor:'#1D9E75',borderRadius:4},{label:'전체',data:wTotal,backgroundColor:'rgba(0,0,0,0.08)',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:12}}},y:{beginAtZero:true,ticks:{stepSize:1,font:{size:12}},grid:{color:'rgba(0,0,0,0.05)'}}}}});
+  const clientMap={};realTasks.forEach(t=>{if(t.client)clientMap[t.client]=(clientMap[t.client]||0)+1});
+  const cNames=Object.keys(clientMap).sort((a,b)=>clientMap[b]-clientMap[a]);
+  const cVals=cNames.map(n=>clientMap[n]);const colors=['#378ADD','#1D9E75','#D85A30','#D4537E','#7F77DD','#BA7517','#639922','#888780'];
+  const barH=Math.max(180,cNames.length*44+40);document.getElementById('client-chart-wrap').style.height=barH+'px';
+  if(chartC)chartC.destroy();
+  chartC=new Chart(document.getElementById('chart-client'),{type:'bar',data:{labels:cNames,datasets:[{data:cVals,backgroundColor:cNames.map((_,i)=>colors[i%colors.length]),borderRadius:4}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{stepSize:1,font:{size:12}},grid:{color:'rgba(0,0,0,0.05)'}},y:{grid:{display:false},ticks:{font:{size:12}}}}}});
 }
+
+async function saveName(){
+  const v=document.getElementById('s-username').value.trim();
+  S.username=v||'';
+  await saveSettingsToDB();
+}
+async function addClient(){
+  const name=document.getElementById('nc-name').value.trim();
+  const sec=document.getElementById('nc-sec').value;
+  if(!name)return;
+  S.clients[name]=sec;document.getElementById('nc-name').value='';
+  await saveSettingsToDB();renderClSettings();renderClientSel();
+}
+async function rmClient(name){
+  delete S.clients[name];
+  await saveSettingsToDB();renderClSettings();renderClientSel();toast('고객사가 삭제됐어요');
+}
+async function upClient(name,sec){S.clients[name]=sec;await saveSettingsToDB();}
+function renderClSettings(){
+  const el=document.getElementById('cl-list');
+  const names=Object.keys(S.clients);
+  if(!names.length){el.innerHTML='<div style="padding:12px 16px;font-size:13px;color:var(--text3)">등록된 고객사가 없어요.</div>';return;}
+  const groups=[{key:'gov',label:'정부/민간',dot:'#378ADD'},{key:'sub',label:'구독제',dot:'#1D9E75'},{key:'issue',label:'이슈사항',dot:'#E24B4A'},{key:'etc',label:'기타',dot:'#888780'}];
+  el.innerHTML=groups.map(g=>{
+    const members=names.filter(n=>S.clients[n]===g.key);if(!members.length)return '';
+    const rows=members.map(n=>`<div class="cl-row"><span class="cl-name">${esc(n)}</span><select class="cl-sel" onchange="upClient('${esc(n)}',this.value)">${['gov','sub','issue','etc'].map(v=>`<option value="${v}"${S.clients[n]===v?' selected':''}>${{gov:'정부/민간',sub:'구독제',issue:'이슈',etc:'기타'}[v]}</option>`).join('')}</select><button class="cl-del" onclick="rmClient('${esc(n)}')">✕</button></div>`).join('');
+    return `<div class="cl-group"><div class="cl-group-head"><span class="cl-group-dot" style="background:${g.dot}"></span><span class="cl-group-label">${g.label}</span><span class="cl-group-count">${members.length}개</span></div>${rows}</div>`;
+  }).join('');
+}
+
+let editId=null;
+function openEdit(id){
+  const t=(S.tasks[wk]||[]).find(x=>String(x.id)===String(id));if(!t)return;
+  editId=String(id);
+  document.getElementById('e-content').value=t.content||'';
+  document.getElementById('e-date').value=t.date||todayStr;
+  document.getElementById('e-pri').value=t.pri||'mid';
+  document.getElementById('e-type').value=t.isNext?'nextweek':'today';
+  const sel=document.getElementById('e-client');
+  sel.innerHTML='<option value="">선택 안함 (기타)</option>';
+  Object.keys(S.clients).forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;if(n===t.client)o.selected=true;sel.appendChild(o);});
+  document.getElementById('editModal').classList.add('open');
+  setTimeout(()=>document.getElementById('e-content').focus(),100);
+}
+function closeEdit(ev){
+  if(ev&&ev.target!==document.getElementById('editModal'))return;
+  document.getElementById('editModal').classList.remove('open');editId=null;
+}
+async function saveEdit(){
+  const t=(S.tasks[wk]||[]).find(x=>String(x.id)===String(editId));if(!t)return;
+  const content=document.getElementById('e-content').value.trim();if(!content)return;
+  const clientVal=document.getElementById('e-client').value;
+  const typeVal=document.getElementById('e-type').value;
+  t.content=content;t.date=document.getElementById('e-date').value||todayStr;t.pri=document.getElementById('e-pri').value;
+  t.isNext=(typeVal==='nextweek');t.client=clientVal||'';
+  t.base=(typeVal==='issue')?'issue':clientVal?(S.clients[clientVal]||'etc'):'etc';
+  document.getElementById('editModal').classList.remove('open');editId=null;
+  renderDaily();toast('수정됐어요');
+  await saveTaskToDB(t);
+}
+
 function setTab(btn,tab){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
-  ['daily','report','checkout','monthly','settings'].forEach(p=>{
-    document.getElementById('pane-'+p).style.display=p===tab?'':'none';
-  });
+  ['daily','report','checkout','monthly','settings'].forEach(p=>{document.getElementById('pane-'+p).style.display=p===tab?'':'none';});
   if(tab==='report')renderReport();
   if(tab==='checkout')renderCheckout();
   if(tab==='monthly')renderMonthly();
-  if(tab==='settings'){
-    document.getElementById('s-username').value=S.username||'';
-    renderClSettings();
-  }
+  if(tab==='settings'){document.getElementById('s-username').value=S.username||'';renderClSettings();}
 }
 
 function init(){
@@ -1063,14 +1007,22 @@ function init(){
   renderClientSel();renderDaily();
 }
 
-load();
-Object.keys(S.tasks||{}).forEach(wkKey=>{
-  (S.tasks[wkKey]||[]).forEach(t=>{ t.id=String(t.id); });
+/* ── Boot ── */
+sb.auth.onAuthStateChange(async(event,session)=>{
+  if(session?.user){
+    currentUser=session.user;
+    const email=session.user.email||'';
+    document.getElementById('user-email').textContent=email;
+    document.getElementById('user-avatar').style.display='none';
+    toast('데이터 불러오는 중...');
+    await loadFromDB();
+    showApp();
+    init();
+    toast('로그인됐어요! 👋');
+  } else {
+    showLogin();
+  }
 });
-if(!Object.keys(S.clients).length){
-  S.clients={'케이오알이':'gov','로보메이션':'sub','케이웨이':'sub','케이싹':'sub','떼루아본':'sub'};
-}
-init();
 </script>
 </body>
 </html>
