@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>주간보고 업무툴</title>
+<title>주간보고</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -540,13 +540,14 @@ async function loadFromDB(){
   }
 }
 
-async function saveTaskToDB(t){
+async function saveTaskToDB(t, weekKey){
   if(!currentUser)return;
+  const targetWk=weekKey||wk;
   const{error}=await sb.from('tasks').upsert({
-    id:t.id,user_id:currentUser.id,week_key:wk,
-    content:t.content,client:t.client,base:t.base,pri:t.pri,
+    id:t.id,user_id:currentUser.id,week_key:targetWk,
+    content:t.content,client:t.client||'',base:t.base||'etc',pri:t.pri||'mid',
     done:t.done,is_next:t.isNext,date:t.date,
-    carried_from:t.carriedFrom,scheduled_date:t.scheduledDate||'',
+    carried_from:t.carriedFrom||null,scheduled_date:t.scheduledDate||'',
     task_order:t.order||0,files:t.files||[]
   });
   if(error){console.error(error);setSaveDot(false);}
@@ -664,8 +665,7 @@ async function carryNext(id){
   S.tasks[nwk].push(nt);
   S.tasks[wk]=S.tasks[wk].filter(x=>String(x.id)!==String(id));
   renderDaily();toast('차주로 이월됐어요');
-  await Promise.all([deleteTaskFromDB(id),saveTaskToDB({...nt,_wk:nwk})]);
-  const prev_wk=wk;wk=nwk;await saveTaskToDB(nt);wk=prev_wk;
+  await Promise.all([deleteTaskFromDB(id), saveTaskToDB(nt, nwk)]);
 }
 
 function tepTypeChange(id,val){
@@ -1008,18 +1008,24 @@ function init(){
 }
 
 /* ── Boot ── */
+let appReady=false;
 sb.auth.onAuthStateChange(async(event,session)=>{
   if(session?.user){
     currentUser=session.user;
-    const email=session.user.email||'';
-    document.getElementById('user-email').textContent=email;
+    document.getElementById('user-email').textContent=session.user.email||'';
     document.getElementById('user-avatar').style.display='none';
-    toast('데이터 불러오는 중...');
-    await loadFromDB();
-    showApp();
-    init();
-    toast('로그인됐어요! 👋');
+    if(!appReady){
+      appReady=true;
+      toast('데이터 불러오는 중...');
+      await loadFromDB();
+      showApp();
+      init();
+      toast('로그인됐어요! 👋');
+    }
   } else {
+    appReady=false;
+    currentUser=null;
+    S={clients:{},tasks:{},username:''};
     showLogin();
   }
 });
