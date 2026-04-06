@@ -640,12 +640,15 @@ async function addTask(){
   let client,base;
   if(!clientVal){client='';base=isIssue?'issue':'etc';}
   else{client=clientVal;base=isIssue?'issue':(S.clients[clientVal]||'etc');}
-  if(!S.tasks[wk])S.tasks[wk]=[];
-  const t={id:mkId(),content,client,base,pri,done:false,isNext,date:dateVal,carriedFrom:null,scheduledDate:'',order:S.tasks[wk].length,files:[]};
-  S.tasks[wk].push(t);
+
+  // 차주 예정은 다음 주 week_key로 저장
+  const targetWk=isNext?getWkKey2(wkOff+1):wk;
+  if(!S.tasks[targetWk])S.tasks[targetWk]=[];
+  const t={id:mkId(),content,client,base,pri,done:false,isNext,date:dateVal,carriedFrom:null,scheduledDate:'',order:S.tasks[targetWk].length,files:[]};
+  S.tasks[targetWk].push(t);
   document.getElementById('f-content').value='';
   renderDaily();
-  await saveTaskToDB(t);
+  await saveTaskToDB(t,targetWk);
 }
 
 async function toggleDone(id){
@@ -815,25 +818,41 @@ function setView(btn,v){
 function renderDaily(){
   const list=document.getElementById('task-list');
   const tasks=S.tasks[wk]||[];
+
+  // 이전 주차에서 차주예정으로 작성됐지만 현재 주가 된 업무 → "이번 주 예정"으로 별도 표시
+  const thisWeekNext=tasks.filter(t=>t.isNext);
+  const todayTasks=tasks.filter(t=>!t.isNext);
+
   if(!tasks.length){list.innerHTML='<div class="empty">아직 등록된 업무가 없어요.<br>위에서 업무를 추가해보세요.</div>';return;}
+
   let groups={};
   if(curView==='week'){
-    tasks.forEach(t=>{const g=t.isNext?'__next__':t.date;(groups[g]||(groups[g]=[])).push(t)});
+    todayTasks.forEach(t=>{const g=t.date;(groups[g]||(groups[g]=[])).push(t)});
   } else {
-    const td=tasks.filter(t=>!t.isNext&&t.date===todayStr);
-    const nx=tasks.filter(t=>t.isNext);
+    const td=todayTasks.filter(t=>t.date===todayStr);
     if(td.length)groups[todayStr]=td;
-    if(nx.length)groups['__next__']=nx;
   }
-  const keys=Object.keys(groups).sort((a,b)=>{
-    if(a==='__next__')return 1;if(b==='__next__')return -1;return a<b?-1:1;
-  });
-  list.innerHTML=keys.map(k=>{
+
+  const keys=Object.keys(groups).sort((a,b)=>a<b?-1:1);
+
+  // 이번 주 예정 그룹을 맨 위에
+  const thisWeekNextHtml=thisWeekNext.length?`
+    <div class="day-group">
+      <div class="day-head">
+        <span class="day-lbl" style="color:var(--amber-text,#854F0B)">이번 주 예정</span>
+        <span class="day-rule" style="background:var(--amber-bg,#FAEEDA)"></span>
+        <span class="day-count">${thisWeekNext.filter(t=>t.done).length}/${thisWeekNext.length}</span>
+      </div>
+      ${[...thisWeekNext].sort((a,b)=>(a.order||0)-(b.order||0)).map(t=>renderCard(t)).join('')}
+    </div>`:'';
+
+  const dailyHtml=keys.map(k=>{
     const items=[...groups[k]].sort((a,b)=>(a.order||0)-(b.order||0));
-    const lbl=k==='__next__'?'차주 예정':fmtD(k);
     const done=items.filter(t=>t.done).length;
-    return `<div class="day-group"><div class="day-head"><span class="day-lbl">${lbl}</span><span class="day-rule"></span><span class="day-count">${done}/${items.length}</span></div>${items.map(t=>renderCard(t)).join('')}</div>`;
+    return `<div class="day-group"><div class="day-head"><span class="day-lbl">${fmtD(k)}</span><span class="day-rule"></span><span class="day-count">${done}/${items.length}</span></div>${items.map(t=>renderCard(t)).join('')}</div>`;
   }).join('');
+
+  list.innerHTML=thisWeekNextHtml+dailyHtml;
 }
 
 function dStart(ev,id){dragId=id;ev.currentTarget.classList.add('dragging')}
@@ -890,7 +909,7 @@ function renderCheckout(){
   const todayDone=tasks.filter(t=>!t.isNext&&t.date===todayStr&&t.done);
   const todayPending=tasks.filter(t=>!t.isNext&&t.date===todayStr&&!t.done);
   const preview=document.getElementById('checkout-preview');if(!preview)return;
-  const doneHtml=todayDone.length?todayDone.map(t=>`<div class="rs-item">✓ ${t.client?`<strong style="font-weight:500">${esc(t.client)}</strong> : `:''}${esc(t.content)}</div>`).join(''):`<div class="rs-none">완료한 업무가 없어요</div>`;
+  const doneHtml=todayDone.length?todayDone.map(t=>`<div class="rs-item">- ${t.client?`<strong style="font-weight:500">${esc(t.client)}</strong> : `:''}${esc(t.content)}</div>`).join(''):`<div class="rs-none">완료한 업무가 없어요</div>`;
   const pendingHtml=todayPending.length?`<div style="margin-top:12px"><div class="rs-head" style="margin-bottom:6px"><span class="rs-dot" style="background:#EF9F27"></span>미완료</div>${todayPending.map(t=>`<div class="rs-item" style="color:var(--text2)">- ${t.client?`<strong style="font-weight:500">${esc(t.client)}</strong> : `:''}${esc(t.content)}</div>`).join('')}</div>`:'';
   preview.innerHTML=`<div class="rs-head" style="margin-bottom:2px"><span style="font-size:14px;font-weight:500;color:var(--text)">[퇴근보고]</span></div><div style="font-size:14px;color:var(--text2);margin-bottom:12px" id="checkout-msg-preview"></div><div class="rs-head" style="margin-bottom:6px"><span class="rs-dot" style="background:#1D9E75"></span>완료 업무</div>${doneHtml}${pendingHtml}`;
   const msgEl=document.getElementById('checkout-msg-preview');
@@ -902,7 +921,7 @@ function buildCheckoutTxt(){
   const todayDone=tasks.filter(t=>!t.isNext&&t.date===todayStr&&t.done);
   const todayPending=tasks.filter(t=>!t.isNext&&t.date===todayStr&&!t.done);
   let lines=[`[퇴근보고] ${msg}`,'']; 
-  if(todayDone.length)todayDone.forEach(t=>lines.push(`✓ ${t.client?t.client+' : ':''}${t.content}`));
+  if(todayDone.length)todayDone.forEach(t=>lines.push(`- ${t.client?t.client+' : ':''}${t.content}`));
   else lines.push('(완료한 업무 없음)');
   if(todayPending.length){lines.push('');lines.push('▸ 미완료');todayPending.forEach(t=>lines.push(`- ${t.client?t.client+' : ':''}${t.content}`));}
   return lines.join('\n');
