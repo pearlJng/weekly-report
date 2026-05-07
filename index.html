@@ -1,6 +1,3 @@
-const SB_URL = 'https://hjrohgwwzfeupnzjunrk.supabase.co';
-const SB_KEY = 'sb_publishable_aEONiQJfvs9tyPZyssUGrg_3Iqhkfg1';
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -88,7 +85,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex
 /* Calendar grid */
 .lcal-grid-area{padding:4px 8px 8px;}
 .lcal-grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;}
-.lcal-cell{min-height:90px;padding:5px 2px 3px;border-radius:6px;cursor:pointer;transition:background .1s;overflow:hidden;position:relative;}
+.lcal-cell{min-height:80px;padding:5px 4px 4px;border-radius:6px;cursor:pointer;transition:background .1s;overflow:hidden;}
 .lcal-cell:hover{background:rgba(0,0,0,.025);}
 .lcal-cell.today{background:rgba(110,155,118,.07);}
 .lcal-cell.today .lcal-cdn{background:var(--text);color:#fff;border-radius:50%;}
@@ -96,18 +93,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex
 .lcal-cell.other .lcal-cdn{color:var(--text-3);}
 .lcal-cdn{font-size:11px;font-weight:600;color:var(--text);width:20px;height:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 4px;}
 
-/* ── 캘린더 프로젝트 바 — 참고 이미지 스타일 ── */
-.lcal-event{font-size:10px;font-weight:600;padding:0;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1;cursor:pointer;transition:filter .12s;display:block;height:20px;display:flex;align-items:center;}
-.lcal-event:hover{filter:brightness(0.94);}
-.lcal-event.proj-bar{color:#fff;padding:0 8px;height:20px;}
-/* 시작일: 왼쪽 둥글 + 프로젝트명 표시 */
-.lcal-event.proj-start{border-radius:10px 0 0 10px;padding-left:10px;font-size:10px;}
-/* 중간날: 직사각형, 텍스트 없음, 살짝 투명 */
-.lcal-event.proj-mid{border-radius:0;font-size:0;padding:0;opacity:.75;}
-/* 종료일: 오른쪽 둥글, 텍스트 없음 */
-.lcal-event.proj-end{border-radius:0 10px 10px 0;font-size:0;padding:0;opacity:.75;}
-/* 하루짜리 */
-.lcal-event.proj-single{border-radius:10px;padding:0 10px;font-size:10px;}
+/* ── Pill-style event bars (16번) ── */
+.lcal-evt{font-size:9px;font-weight:500;padding:2px 8px;border-radius:999px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.5;transition:filter .15s,transform .15s;cursor:pointer;}
+.lcal-evt:hover{filter:brightness(1.07);transform:translateY(-0.5px);}
+.lcal-evt.daily{background:#E9F2ED;color:#2F6B3E;}
+.lcal-evt.daily.done{background:var(--hover);color:var(--text-3);text-decoration:line-through;}
+.lcal-evt.daily.issue{background:#F5EAEA;color:#7A3535;}
+.lcal-evt.daily.review{background:#FDF5E8;color:#8A5A00;}
+.lcal-evt.proj{color:#fff;font-weight:600;}
+.lcal-evt.proj-s{border-radius:999px 0 0 999px;}
+.lcal-evt.proj-e{border-radius:0 999px 999px 0;}
+.lcal-evt.proj-m{border-radius:0;opacity:.85;}
 .lcal-more{font-size:9px;color:var(--text-3);padding:1px 6px;border-radius:999px;background:var(--hover);display:inline-block;margin-top:1px;}
 
 /* ════════════════════════════════════════
@@ -341,9 +337,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex
 .re-items{padding:0 14px 8px;}
 .re-item-row{display:flex;align-items:center;gap:4px;padding:2px 0;}
 .re-item-row:hover .re-item-del{opacity:1;}
-
-.re-item-display{flex:1;font-size:13px;color:var(--text);line-height:1.6;padding:2px 4px;border-radius:4px;cursor:default;min-width:0;word-break:break-word;}
-.re-item-display:hover{background:var(--hover);cursor:text;}
 .re-item-inp{flex:1;font-size:13px;padding:3px 6px;border:none;border-bottom:1px solid transparent;background:transparent;color:var(--text);font-family:var(--font);}
 .re-item-inp:focus{outline:none;border-bottom-color:var(--border-2);}
 .re-item-del{width:16px;height:16px;border:none;background:transparent;cursor:pointer;color:var(--text-3);font-size:11px;border-radius:3px;opacity:0;flex-shrink:0;}
@@ -431,7 +424,7 @@ select{appearance:none;-webkit-appearance:none;}
       inputmode="numeric" maxlength="12"
       onkeydown="if(event.key==='Enter'){event.preventDefault();doLogin()}">
     <button class="login-btn" onclick="doLogin()">시작하기 →</button>
-    <div class="login-err" id="login-error"></div>
+    <div class="login-err" id="login-err"></div>
     <div class="login-hint">사번으로 로그인하면 데이터가<br>브라우저에 안전하게 저장돼요</div>
   </div>
 </div>
@@ -525,12 +518,26 @@ select{appearance:none;-webkit-appearance:none;}
       <!-- Stats -->
       <div class="pm-stats" id="pm-stats"></div>
       <!-- Add -->
-      <div class="pm-add-area" style="padding:12px 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;">
-        <button onclick="openProjModal()" style="width:100%;padding:10px 16px;font-size:13px;font-weight:600;border-radius:var(--r);border:1.5px dashed var(--border-2);background:transparent;color:var(--text-2);cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:7px;transition:all .15s;" onmouseover="this.style.background='var(--hover)';this.style.borderStyle='solid';" onmouseout="this.style.background='transparent';this.style.borderStyle='dashed';">
-          <span style="font-size:18px;line-height:1;font-weight:300;">＋</span> 새 프로젝트 추가
-        </button>
+      <div class="pm-add-area">
+        <div class="pm-type-row">
+          <button class="pm-type-btn on" onclick="pmSelType(this,'daily')">일일 업무</button>
+          <button class="pm-type-btn" onclick="openProjModal()">＋ 프로젝트</button>
+        </div>
+        <div class="pm-input-row">
+          <input class="pm-add-inp" id="pm-add-inp"
+            placeholder="업무 입력 (자연어: '삼성 메인 수정')"
+            onkeyup="onPmInputKey(event)" oninput="onPmInputChange(this.value)">
+          <select class="pm-client-sel" id="pm-daily-client"><option value="">고객사</option></select>
+          <button class="pm-add-go" onclick="pmAdd()">추가</button>
+        </div>
+        <div class="pm-ai-hint" id="ai-classify-hint"></div>
+        <div class="pm-proj-dates" id="pm-proj-dates" style="display:none;">
+          <span class="pm-date-lbl">시작</span><input type="date" class="pm-date-inp" id="pm-start">
+          <span class="pm-date-lbl">종료</span><input type="date" class="pm-date-inp" id="pm-end">
+          <select class="pm-client-sel" id="pm-client-sel"><option value="">고객사</option></select>
+        </div>
       </div>
-      <div class="pm-body"<div class="pm-body" id="pm-body"></div>
+      <div class="pm-body" id="pm-body"></div>
     </div>
 
     <!-- REPORT -->
@@ -597,19 +604,16 @@ select{appearance:none;-webkit-appearance:none;}
 <div class="modal-back" id="proj-modal" onclick="if(event.target===this)closeProjModal()">
   <div class="modal-box" onclick="event.stopPropagation()">
     <div class="modal-title">✦ 새 프로젝트</div>
-    <div class="modal-field"><div class="modal-lbl">고객사</div><select class="modal-inp" id="proj-client" style="appearance:none;"><option value="">없음</option></select></div>
-    <div class="modal-field"><div class="modal-lbl">프로젝트명 *</div><input class="modal-inp" id="proj-name" placeholder="예: 홈페이지 리뉴얼"></div>
-    <div class="modal-field"><div class="modal-lbl">세부 내용 <span style="color:var(--text-3);font-weight:400;">(선택 · AI 생성에 활용)</span></div><textarea class="modal-ta" id="proj-desc" placeholder="어떤 프로젝트인지 설명하면 AI가 더 정확한 체크리스트를 생성해요" rows="3"></textarea></div>
+    <div class="modal-field"><div class="modal-lbl">프로젝트명 *</div><input class="modal-inp" id="proj-name" placeholder="예: 케이오알이 홈페이지 리뉴얼"></div>
+    <div class="modal-field"><div class="modal-lbl">설명 (AI 체크리스트 자동생성)</div><textarea class="modal-ta" id="proj-desc" placeholder="프로젝트 설명을 입력하면 AI가 체크리스트를 만들어줘요"></textarea></div>
+    <button class="ai-gen-btn" id="proj-ai-btn" onclick="genProjChecklist()">✦ AI로 체크리스트 생성</button>
+    <div class="ai-status" id="proj-ai-status">✦ 생성 중...</div>
+    <div class="cl-prev" id="proj-cl-preview"></div>
     <div class="modal-row">
       <div class="modal-field"><div class="modal-lbl">시작일</div><input type="date" class="modal-inp" id="proj-start"></div>
-      <div class="modal-field"><div class="modal-lbl">마감일</div><input type="date" class="modal-inp" id="proj-end"></div>
+      <div class="modal-field"><div class="modal-lbl">종료일</div><input type="date" class="modal-inp" id="proj-end"></div>
     </div>
-    <button class="ai-gen-btn" id="proj-ai-btn" onclick="genProjChecklist()" style="width:100%;justify-content:center;margin-top:8px;padding:10px;">✦ AI로 업무 체크리스트 생성하기</button>
-    <div class="ai-status" id="proj-ai-status" style="font-size:12px;color:var(--working);padding:6px 0;display:none;">✦ 생성 중...</div>
-    <div class="cl-prev" id="proj-cl-preview"></div>
-    <div class="modal-btns"><button class="modal-cancel" onclick="closeProjModal()">취소</button><button class="modal-save" onclick="saveProjModal()">프로젝트 추가</button></div>
-  </div>
-</div>
+    <div class="modal-field"><div class="modal-lbl">고객사</div><select class="modal-inp" id="proj-client" style="appearance:none;"><option value="">없음</option></select></div>
     <div class="modal-btns"><button class="modal-cancel" onclick="closeProjModal()">취소</button><button class="modal-save" onclick="saveProjModal()">추가</button></div>
   </div>
 </div>
@@ -644,7 +648,7 @@ const TASK_STATUS={
 let reportTone='concise';
 
 let wkOff=0,wk='',todayStr='';
-let WS={clients:{},tasks:{},username:'',reportEdits:{}};
+let WS={clients:{},tasks:{},username:'',reportEdits:{},clientGroups:null};
 let chartW=null,chartC=null;
 let pmCalYear=0,pmCalMonth=0,pmCalSelected='';
 let pmAddType='daily';
@@ -653,10 +657,22 @@ let pmAddType='daily';
    UTILS
 ═══════════════════════════════════════════ */
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;')}
-function wLoad(){try{const r=localStorage.getItem('wr_local');if(r)WS=JSON.parse(r)}catch(_){}}
+function getStorageKey(){const id=sessionStorage.getItem('wr_empid')||localStorage.getItem('wr_empid_persist')||'local';return 'wr_'+id;}
+function getCurrentEmpid(){return sessionStorage.getItem('wr_empid')||localStorage.getItem('wr_empid_persist')||'';}
+const SB_URL='https://hjrohgwwzfeupnzjunrk.supabase.co';
+const SB_KEY='sb_publishable_aEONiQJfvs9tyPZyssUGrg_3Iqhkfg1';
+function getSB(){
+  if(!SB_URL||!SB_KEY)return null;
+  return{
+    async load(id){const r=await fetch(`${SB_URL}/rest/v1/user_data?empid=eq.${encodeURIComponent(id)}&select=data`,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});if(!r.ok)throw new Error(r.status);const rows=await r.json();return rows[0]?.data||null;},
+    async save(id,data){await fetch(`${SB_URL}/rest/v1/user_data`,{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify({empid:id,data,updated_at:new Date().toISOString()})});}
+  };
+}
+async function wLoadFromCloud(empid){const sb=getSB();if(!sb||!empid)return false;try{const d=await sb.load(empid);if(d){WS=d;localStorage.setItem(getStorageKey(),JSON.stringify(WS));return true;}}catch(e){console.warn('[SB]',e);}return false;}
+function wLoad(){try{const r=localStorage.getItem(getStorageKey());if(r)WS=JSON.parse(r);}catch(_){}}
 function wSave(){
-  try{localStorage.setItem('wr_local',JSON.stringify(WS));}catch(_){}
-  const d=document.getElementById('saveDot');if(d)d.style.background='#639922';
+  try{localStorage.setItem(getStorageKey(),JSON.stringify(WS));const sb=getSB(),eid=getCurrentEmpid();if(sb&&eid)sb.save(eid,WS).catch(e=>console.warn('[SB save]',e));}catch(_){}
+  const d=document.getElementById('saveDot');if(d)d.style.background='var(--done)';
 }
 let undoFn=null,toastTimer=null;
 function toast(m,undoCb){
@@ -730,13 +746,40 @@ function addClient(){
 }
 function rmClient(name){delete WS.clients[name];wSave();renderClSettings();renderClientSel();toast('고객사 삭제됐어요');}
 function upClient(name,sec){WS.clients[name]=sec;wSave();}
+
+/* ── Client Groups ── */
+function getClientGroups(){
+  if(WS.clientGroups&&Array.isArray(WS.clientGroups)&&WS.clientGroups.length)return WS.clientGroups;
+  return[{key:'gov',label:'정부/민간',dot:'#378ADD'},{key:'sub',label:'구독제',dot:'#1D9E75'},{key:'issue',label:'이슈사항',dot:'#E24B4A'},{key:'etc',label:'기타',dot:'#888780'}];
+}
+function addClientGroup(){
+  const name=(document.getElementById('cg-name')?.value||'').trim();
+  const color=document.getElementById('cg-color')?.value||'#888780';
+  if(!name){toast('그룹명을 입력해주세요');return;}
+  if(!WS.clientGroups)WS.clientGroups=getClientGroups().map(g=>({...g}));
+  WS.clientGroups.push({key:'cg_'+Date.now(),label:name,dot:color});
+  if(document.getElementById('cg-name'))document.getElementById('cg-name').value='';
+  wSave();renderClSettings();renderClientSel();toast("'"+name+"' 그룹 추가됐어요");
+}
+function renameClientGroup(key,label,dot){
+  if(!WS.clientGroups)WS.clientGroups=getClientGroups().map(g=>({...g}));
+  const g=WS.clientGroups.find(x=>x.key===key);
+  if(g){g.label=label||g.label;g.dot=dot||g.dot;}
+  wSave();renderClSettings();renderClientSel();
+}
+function removeClientGroup(key){
+  if(!WS.clientGroups)WS.clientGroups=getClientGroups().map(g=>({...g}));
+  WS.clientGroups=WS.clientGroups.filter(x=>x.key!==key);
+  Object.keys(WS.clients).forEach(n=>{if(WS.clients[n]===key)WS.clients[n]='etc';});
+  wSave();renderClSettings();renderClientSel();toast('그룹 삭제됐어요');
+}
 function renderClSettings(){
   const el=document.getElementById('cl-list');const names=Object.keys(WS.clients);
   if(!names.length){el.innerHTML='<div style="padding:9px 11px;font-size:12px;color:#a0a0a0">등록된 고객사가 없어요.</div>';return;}
-  const groups=[{key:'gov',label:'정부/민간',dot:'#378ADD'},{key:'sub',label:'구독제',dot:'#1D9E75'},{key:'issue',label:'이슈사항',dot:'#E24B4A'},{key:'etc',label:'기타',dot:'#888780'}];
+  const groups=getClientGroups();
   el.innerHTML=groups.map(g=>{
     const members=names.filter(n=>WS.clients[n]===g.key);if(!members.length)return '';
-    const rows=members.map(n=>`<div class="cl-row"><span class="cl-name">${esc(n)}</span><select class="cl-sel" onchange="upClient('${esc(n)}',this.value)">${['gov','sub','issue','etc'].map(v=>`<option value="${v}"${WS.clients[n]===v?' selected':''}>${{gov:'정부/민간',sub:'구독제',issue:'이슈',etc:'기타'}[v]}</option>`).join('')}</select><button class="cl-del-btn" onclick="rmClient('${esc(n)}')">✕</button></div>`).join('');
+    const rows=members.map(n=>`<div class="cl-row"><span class="cl-name">${esc(n)}</span><select class="cl-sel" onchange="upClient('${esc(n)}',this.value)">${getClientGroups().map(v=>`<option value="${v.key}"${WS.clients[n]===v.key?' selected':''}>${esc(v.label)}</option>`).join('')}</select><button class="cl-del-btn" onclick="rmClient('${esc(n)}')">✕</button></div>`).join('');
     return `<div class="cl-group"><div class="cl-group-head"><span class="cl-group-dot" style="background:${g.dot}"></span><span class="cl-group-label">${g.label}</span><span class="cl-group-count">${members.length}개</span></div>${rows}</div>`;
   }).join('');
 }
@@ -747,7 +790,7 @@ function renderClSettings(){
 function pmSelType(btn,type){document.querySelectorAll('.pm-type-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');pmAddType=type||'daily';const dr=document.getElementById('pm-proj-dates');if(dr){dr.style.display=pmAddType==='project'?'flex':'none';}}
 
 function pmAdd(){
-  const content=document.getElementById('pm-add-inp').value.trim();if(!content)return;
+  const content=document.getElementById('pm-add-inp')?..value.trim();if(!content)return;
   const isProject=(pmAddType==='project');
   const clientVal=isProject?(document.getElementById('pm-client-sel')?.value||''):(document.getElementById('pm-daily-client')?.value||'');
   const startDate=document.getElementById('pm-start')?.value||todayStr;
@@ -758,7 +801,7 @@ function pmAdd(){
     date:todayStr,startDate:isProject?startDate:'',endDate:isProject?endDate:'',
     carriedFrom:null,scheduledDate:'',order:WS.tasks[wk].length,files:[]};
   WS.tasks[wk].push(t);
-  document.getElementById('pm-add-inp').value='';
+  document.getElementById('pm-add-inp')?..value='';
   wSave();renderPM();renderPMCalendar();
 }
 
@@ -884,7 +927,7 @@ function renderAccordionCard(t,defaultOpen){
         ondragend="clDragEnd()">
         <span class="cl-drag">⣿</span>
         <div class="cl-cb${item.done?' ck':''}" onclick="toggleChecklistItem('${sid}','${item.id}')"></div>
-        <span class="cl-text${item.done?' dn':''}" data-cl-id="${sid}-${item.id}" ondblclick="startClEdit('${sid}','${item.id}')" style="cursor:default;" title="더블클릭으로 편집">${esc(item.text)}</span>
+        <span class="cl-text${item.done?' dn':''}">${esc(item.text)}</span>
         ${alreadyAdded?'<span class="cl-added">오늘 추가됨</span>':''}
         ${!alreadyAdded&&!item.done?`<button class="cl-add-daily" onclick="addChecklistToDaily('${sid}','${item.id}')">+ 오늘</button>`:''}
         <button class="cl-del" onclick="deleteChecklistItem('${sid}','${item.id}')">✕</button>
@@ -1020,155 +1063,52 @@ function groupByClient(items){
   return order.map(k=>({client:k==='__none__'?'':k,tasks:map[k]}));
 }
 
-function buildReportData(){
-  // 이번 주 일일업무 (완료 + 미완료 모두)
-  const dailyTasks=(WS.tasks[wk]||[]).filter(t=>!t.isProject);
-  // 전체 프로젝트의 완료된 체크리스트 항목
-  const projDoneItems=[];
-  Object.values(WS.tasks).flat().filter(t=>t.isProject&&t.checklist).forEach(proj=>{
-    proj.checklist.filter(ci=>ci.done).forEach(ci=>{
-      projDoneItems.push({id:ci.id+'_p',content:ci.text,client:proj.client||'',done:true,_projTitle:proj.content});
-    });
-  });
-  // 고객사 키 기준 병합
-  const map={};
-  [...dailyTasks,...projDoneItems].forEach(t=>{
-    const k=t.client||'__none__';
-    if(!map[k])map[k]=[];
-    map[k].push(t);
-  });
-  return map;
-}
-
-function buildReportData(){
-  // 이번 주 일일업무 (완료/미완료 모두)
-  const daily=(WS.tasks[wk]||[]).filter(t=>!t.isProject);
-  // 전체 프로젝트 완료 체크리스트
-  const projItems=[];
-  Object.values(WS.tasks).flat().filter(t=>t.isProject&&t.checklist).forEach(proj=>{
-    proj.checklist.filter(ci=>ci.done).forEach(ci=>{
-      projItems.push({id:ci.id+'_p',content:ci.text,client:proj.client||'',done:true,_proj:proj.content});
-    });
-  });
-  // 고객사 키로 그룹핑
-  const map={};
-  [...daily,...projItems].forEach(t=>{
-    const k=t.client||'__none__';
-    if(!map[k])map[k]=[];
-    map[k].push(t);
-  });
-  return map;
-}
-
 function renderReportEditor(){
   const editor=document.getElementById('report-editor');if(!editor)return;
-  const map=buildReportData();
-  const keys=Object.keys(map).filter(k=>map[k].length>0);
-  if(!keys.length){
-    editor.innerHTML='<div style="padding:24px;text-align:center;font-size:13px;color:var(--text-3);">이번 주 등록된 업무가 없어요</div>';
-    return;
-  }
-  editor.innerHTML=keys.map(clientKey=>{
-    const items=map[clientKey];
-    const label=clientKey==='__none__'?'기타':clientKey;
-    const doneCount=items.filter(t=>t.done||t._proj).length;
-    const rows=items.map((t,i)=>{
-      const isDone=t.done||!!t._proj;
-      const prefix=t._proj?'['+t._proj+'] ':'';
-      const displayText=(prefix+t.content);
-      const dotColor=isDone?'var(--done)':'var(--border-2)';
-      const fid='re_'+clientKey.replace(/[^a-z0-9]/gi,'_')+'_'+i+'_'+t.id;
-      return '<div class="re-item-row" id="row-'+fid+'" style="display:flex;align-items:flex-start;gap:6px;padding:4px 0;">'+
-        '<span style="width:7px;height:7px;border-radius:50%;background:'+dotColor+';flex-shrink:0;margin-top:6px;"></span>'+
-        '<span class="re-item-display" id="disp-'+fid+'" ondblclick="startReEdit(''+fid+'')">'+esc(displayText)+'</span>'+
-        '<input class="re-item-inp" id="inp-'+fid+'" style="display:none;flex:1;" value="'+esc(displayText)+'"'+
-          ' onblur="commitReEdit(''+fid+'')"'+
-          ' onkeydown="if(event.key==='Enter'){event.preventDefault();commitReEdit(''+fid+'')}else if(event.key==='Escape'){cancelReEdit(''+fid+'')}">'+
-        '<button class="re-item-del" onclick="removeReRow(''+fid+'')">✕</button>'+
-        '</div>';
-    }).join('');
-    const gid='regrp_'+clientKey.replace(/[^a-z0-9]/gi,'_');
-    return '<div class="re-section">'+
-      '<div class="re-head">'+
-        '<span class="re-dot" style="background:var(--working)"></span>'+
-        '<span class="re-title" style="font-weight:700;">'+esc(label)+'</span>'+
-        '<span class="re-count">'+doneCount+'/'+items.length+'</span>'+
-      '</div>'+
-      '<div class="re-items" id="'+gid+'">'+rows+
-        '<button onclick="addReRow(''+gid+'',''+esc(label)+'')" '+
-          'style="margin-top:5px;font-size:11px;padding:3px 9px;border-radius:5px;border:1px dashed var(--border-2);background:transparent;cursor:pointer;color:var(--text-3);font-family:var(--font);">'+
-          '+ 항목 추가</button>'+
-      '</div>'+
-    '</div>';
-  }).join('');
-}
-function startReEdit(fid){
-  const d=document.getElementById('disp-'+fid);
-  const inp=document.getElementById('inp-'+fid);
-  if(!d||!inp)return;
-  inp.value=d.textContent;
-  d.style.display='none';inp.style.display='';inp.focus();inp.select();
-}
-function commitReEdit(fid){
-  const d=document.getElementById('disp-'+fid);
-  const inp=document.getElementById('inp-'+fid);
-  if(!d||!inp)return;
-  if(inp.value.trim())d.textContent=inp.value.trim();
-  d.style.display='';inp.style.display='none';
-}
-function cancelReEdit(fid){
-  const d=document.getElementById('disp-'+fid);
-  const inp=document.getElementById('inp-'+fid);
-  if(d)d.style.display='';if(inp)inp.style.display='none';
-}
-function removeReRow(fid){
-  document.getElementById('row-'+fid)?.remove();
-}
-function addReRow(gid,label){
-  const container=document.getElementById(gid);if(!container)return;
-  const fid='re_new_'+Date.now();
-  const div=document.createElement('div');
-  div.className='re-item-row';div.id='row-'+fid;
-  div.style.cssText='display:flex;align-items:flex-start;gap:6px;padding:4px 0;';
-  div.innerHTML='<span style="width:7px;height:7px;border-radius:50%;background:var(--border-2);flex-shrink:0;margin-top:6px;"></span>'+
-    '<input class="re-item-inp" id="inp-'+fid+'" placeholder="업무 내용 입력" style="flex:1;display:block;"'+
-    ' onblur="finalizeNewRow(''+fid+'')"'+
-    ' onkeydown="if(event.key==='Enter'){event.preventDefault();finalizeNewRow(''+fid+'')}else if(event.key==='Escape'){document.getElementById('row-'+fid+'')?.remove()}">'+
-    '<button class="re-item-del" onclick="document.getElementById('row-'+fid+'')?.remove()">✕</button>';
-  const addBtn=container.querySelector('button[onclick*="addReRow"]');
-  if(addBtn)container.insertBefore(div,addBtn);
-  else container.appendChild(div);
-  document.getElementById('inp-'+fid)?.focus();
-}
-function finalizeNewRow(fid){
-  const row=document.getElementById('row-'+fid);
-  const inp=document.getElementById('inp-'+fid);
-  if(!row||!inp)return;
-  const val=inp.value.trim();
-  if(!val){row.remove();return;}
-  const span=document.createElement('span');
-  span.className='re-item-display';span.id='disp-'+fid;span.textContent=val;
-  span.ondblclick=()=>startReEdit(fid);
-  inp.replaceWith(span);
-}
-function buildReportText(){
-  const map=buildReportData();
-  const week=getFullLabel(wk);
-  let lines=['['+week+' 주간보고]
-'];
-  Object.keys(map).filter(k=>map[k].length).forEach(k=>{
-    const label=k==='__none__'?'기타':k;
-    const items=map[k];
-    lines.push('● '+label);
-    items.forEach(t=>{
-      const prefix=t._proj?'['+t._proj+'] ':'';
-      const mark=t.done||t._proj?'✓':'→';
-      lines.push('  '+mark+' '+prefix+t.content);
+  const tasks=(WS.tasks[wk]||[]).filter(t=>!t.isProject);
+  if(!WS.reportEdits)WS.reportEdits={};
+  const edKey=wk;
+  if(!WS.reportEdits[edKey]){
+    // Build from tasks
+    const data={};
+    SEC_ORDER.forEach(s=>{
+      const items=tasks.filter(t=>taskSec2(t)===s);
+      const groups=groupByClient(items);
+      data[s]=[];
+      groups.forEach(g=>{
+        if(g.client)g.tasks.forEach(t=>data[s].push({id:t.id,text:`${g.client} : ${t.content}`}));
+        else g.tasks.forEach(t=>data[s].push({id:t.id,text:t.content}));
+      });
     });
-    lines.push('');
-  });
-  return lines.join('
-');
+    WS.reportEdits[edKey]=data;
+  }
+  const editData=WS.reportEdits[edKey];
+
+  editor.innerHTML=SEC_ORDER.map(s=>{
+    const items=editData[s]||[];
+    const itemsHtml=items.map((item,i)=>`
+      <div class="re-item-row" data-sec="${s}" data-idx="${i}">
+        <input class="re-item-input" value="${esc(item.text)}" data-sec="${s}" data-idx="${i}"
+          onchange="updateReportItem('${s}',${i},this.value)"
+          onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();addReportItemAfter('${s}',${i})}else if(event.key==='Backspace'&&this.value===''){event.preventDefault();deleteReportItem('${s}',${i})}">
+        <button class="re-item-del" onclick="deleteReportItem('${s}',${i})">✕</button>
+      </div>`).join('');
+    return `<div class="re-section">
+      <div class="re-head">
+        <span class="re-dot" style="background:${SEC_DOT[s]}"></span>
+        <span class="re-title">${SEC_LBL[s]}</span>
+        <span class="re-count">${items.length}건</span>
+      </div>
+      <div class="re-items" id="re-items-${s}">
+        ${itemsHtml}
+        <div class="re-add-row">
+          <input class="re-add-input" placeholder="항목 추가..." id="re-add-${s}"
+            onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();addReportItem('${s}')}">
+          <button class="re-add-btn" onclick="addReportItem('${s}')">+</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function updateReportItem(sec,idx,val){
@@ -1326,6 +1266,26 @@ function closeProjModal(){
   document.getElementById('proj-modal').classList.remove('open');
 }
 
+
+function extractJsonArray(text){
+  let t=(text||'').replace(/```json|```/gi,'').trim();
+  const s=t.indexOf('['),e=t.lastIndexOf(']');
+  if(s!==-1&&e>s)t=t.slice(s,e+1);
+  return JSON.parse(t);
+}
+async function callClaudeChecklist(name,desc){
+  const startDate=document.getElementById('proj-start')?.value||'';
+  const endDate=document.getElementById('proj-end')?.value||'';
+  const clientVal=(document.getElementById('proj-client')?.value)||'';
+  const daysLeft=startDate&&endDate?Math.ceil((new Date(endDate)-new Date(startDate))/(1000*60*60*24)):null;
+  const style=daysLeft&&daysLeft<=7?'핵심 업무 위주로':daysLeft&&daysLeft<=14?'2주 일정에 맞게':'단계별로';
+  const prompt=`프로젝트명: ${name||'없음'}\n고객사: ${clientVal||'없음'}\n시작: ${startDate||'미정'} ~ 마감: ${endDate||'미정'}${daysLeft?' ('+daysLeft+'일)':''}\n내용: ${desc||'없음'}\n\n${style} 실무 체크리스트 5~8개를 JSON 배열만으로 응답: ["업무1","업무2"]`;
+  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,messages:[{role:'user',content:prompt}]})});
+  if(!res.ok)throw new Error('API '+res.status);
+  const data=await res.json();
+  if(data.error)throw new Error(data.error.message);
+  return extractJsonArray(data.content?.[0]?.text||'');
+}
 async function genProjChecklist(){
   const desc = document.getElementById('proj-desc').value.trim();
   const name = document.getElementById('proj-name').value.trim();
@@ -1386,7 +1346,7 @@ async function saveProjModal(){
   const name = document.getElementById('proj-name').value.trim();
   if(!name){ toast('프로젝트명을 입력해주세요'); return; }
   const desc = document.getElementById('proj-desc').value.trim();
-  const clientVal = (document.getElementById('proj-client-top')?.value)||document.getElementById('proj-client')?.value||'';
+  const clientVal = document.getElementById('proj-client').value;
   const base = clientVal ? (WS.clients[clientVal]||'etc') : 'etc';
   if(!WS.tasks[wk]) WS.tasks[wk] = [];
 
@@ -1441,34 +1401,6 @@ JSON 배열만 응답 (설명 없이): ["업무1","업무2","업무3",...]`}]
 }
 
 /* ─── Checklist functions ─── */
-
-function startClEdit(taskId,itemId){
-  const span=document.querySelector(`[data-cl-id="${taskId}-${itemId}"]`);
-  const t=findTask(taskId);
-  if(!span||!t||!t.checklist)return;
-  const item=t.checklist.find(x=>x.id===itemId);if(!item)return;
-  const old=item.text;
-  span.contentEditable='true';
-  span.style.outline='1px solid var(--border-2)';
-  span.style.borderRadius='3px';
-  span.style.cursor='text';
-  span.focus();
-  const range=document.createRange();range.selectNodeContents(span);range.collapse(false);
-  const sel=window.getSelection();sel.removeAllRanges();sel.addRange(range);
-  const done=()=>{
-    const val=span.textContent.trim();
-    if(val)item.text=val; else span.textContent=old;
-    span.contentEditable='false';
-    span.style.outline='';span.style.cursor='default';
-    span.onblur=null;span.onkeydown=null;
-    wSave();
-  };
-  span.onblur=done;
-  span.onkeydown=e=>{
-    if(e.key==='Enter'){e.preventDefault();span.blur();}
-    if(e.key==='Escape'){span.textContent=old;span.contentEditable='false';span.style.outline='';span.style.cursor='default';span.onblur=null;}
-  };
-}
 function toggleChecklistItem(taskId, itemId){
   const t = findTask(taskId); if(!t||!t.checklist) return;
   const item = t.checklist.find(x=>x.id===itemId); if(!item) return;
@@ -1586,16 +1518,26 @@ function renderLCal(){
       const col=getProjColor(proj.id);
       const isStart=ds===proj.startDate;
       const isEnd=proj.endDate?ds===proj.endDate:true;
-      const posClass=isStart&&isEnd?'proj-single':isStart?'proj-start':isEnd?'proj-end':'proj-mid';
-      const label=(isStart||isEnd&&!isStart)?esc(proj.content):'';
-      eventsHtml+=`<div class="lcal-event proj-bar ${posClass}" style="background:${col};" 
+      let posClass=isStart&&isEnd?'proj-single':isStart?'proj-start':isEnd?'proj-end':'proj-mid';
+      const label=isStart?esc(proj.content):'';
+      eventsHtml+=`<div class="lcal-event proj-bar ${posClass}" style="background:${col}" 
         onclick="event.stopPropagation();lcalSelectDay('${ds}')" title="${esc(proj.content)}">
-        ${isStart||posClass==='proj-single'?label:''}
+        ${label}
       </div>`;
       count++;
     });
 
-    // daily tasks: 캘린더에 미표시
+    // daily tasks
+    dayTasks.forEach(t=>{
+      if(count>=MAX_VISIBLE)return;
+      const issueClass=t.base==='issue'?' issue':'';
+      const doneClass=t.done?' done':'';
+      eventsHtml+=`<div class="lcal-event daily${issueClass}${doneClass}" 
+        onclick="event.stopPropagation();lcalSelectDay('${ds}')" title="${esc(t.content)}">
+        ${t.done?'✓ ':''} ${esc(t.content)}
+      </div>`;
+      count++;
+    });
 
     const totalCount=dayProjs.length+dayTasks.length;
     if(totalCount>MAX_VISIBLE){
@@ -1683,7 +1625,18 @@ function renderLCalDetail(){
     html+=`<div class="daily-sect" style="margin-top:12px;">완료</div>`;
     html+=doneItems.map(t=>renderDailyPill(t)).join('');
   }
-  if(!tasks.length{
+  if(projs.length){
+    html+=`<div class="daily-sect" style="margin-top:12px;">프로젝트</div>`;
+    projs.forEach(t=>{
+      const prog=projProgress(t);
+      html+=`<div class="daily-item" style="background:#F3EFFA;border-color:rgba(92,56,128,.12);">
+        <span style="font-size:12px;flex-shrink:0;">📁</span>
+        <span class="daily-text">${esc(t.content)}</span>
+        ${prog>=0?`<span style="font-size:10px;color:var(--hold);font-weight:600;">${prog}%</span>`:''}
+      </div>`;
+    });
+  }
+  if(!tasks.length&&!projs.length){
     html+=`<div class="daily-empty">등록된 업무가 없어요</div>`;
   }
   el.innerHTML=html;
@@ -1951,20 +1904,16 @@ function togglePostitBar(){
 
 
 function openRmDrawer(){
-  document.getElementById('rm-drawer').classList.add('open');
-  document.getElementById('rm-drawer-backdrop').classList.add('open');
+  document.getElementById('rm-drawer')?..classList.add('open');
+  document.getElementById('rm-drawer-backdrop')?..classList.add('open');
   renderReminders();
 }
 function closeRmDrawer(){
-  document.getElementById('rm-drawer').classList.remove('open');
-  document.getElementById('rm-drawer-backdrop').classList.remove('open');
+  document.getElementById('rm-drawer')?..classList.remove('open');
+  document.getElementById('rm-drawer-backdrop')?..classList.remove('open');
 }
 // patch rmToggleDone to also re-render postit
 const _origRmToggle=rmToggleDone;
-function rmToggleDone(id,dir){
-  const item=rmData[dir].find(x=>x.id===id);if(!item)return;
-  item.done=!item.done;rmSaveData();renderReminders();rmUpdateBadge();}
-
 
 
 /* ═══════════════════════════════════════════
@@ -1993,7 +1942,7 @@ function onPmInputKey(ev){
       // 분류 결과로 추가
       addClassifiedTask(pendingClassified);
       pendingClassified=null;
-      document.getElementById('ai-classify-hint').classList.remove('show');
+      document.getElementById('ai-classify-hint')?..classList.remove('show');
     } else {
       pmAdd();
     }
@@ -2045,8 +1994,8 @@ function addClassifiedTask(classified){
     date:todayStr,startDate:'',endDate:'',carriedFrom:null,scheduledDate:'',
     order:WS.tasks[wk].length,files:[]};
   WS.tasks[wk].push(t);
-  document.getElementById('pm-add-inp').value='';
-  document.getElementById('ai-classify-hint').classList.remove('show');
+  document.getElementById('pm-add-inp')?..value='';
+  document.getElementById('ai-classify-hint')?..classList.remove('show');
   wSave();renderPM();renderLCal();
   toast(`✦ 자동 분류 완료: ${clientVal||'고객사 없음'} · ${classified.type||''}`);
 }
@@ -2270,7 +2219,7 @@ function renderPmCard(t){
         ondragend="clDragEnd()">
         <span class="cl-drag-handle">⣿</span>
         <div class="cl-cb${item.done?' ck':''}" onclick="toggleChecklistItem('${sid}','${item.id}')"></div>
-        <span class="cl-text${item.done?' dn':''}" data-cl-id="${sid}-${item.id}" ondblclick="startClEdit('${sid}','${item.id}')" style="cursor:default;" title="더블클릭으로 편집">${esc(item.text)}</span>
+        <span class="cl-text${item.done?' dn':''}">${esc(item.text)}</span>
         <button class="cl-add-daily" onclick="addChecklistToDaily('${sid}','${item.id}')">+ 오늘</button>
         <button class="cl-del" onclick="deleteChecklistItem('${sid}','${item.id}')">✕</button>
       </div>`).join('');
@@ -2330,43 +2279,49 @@ function renderPmCard(t){
    LOGIN
 ═══════════════════════════════════════════ */
 function doLogin(){
-  const val = document.getElementById('login-input').value.trim();
-  const errEl = document.getElementById('login-err');
-  if(!val){ errEl.textContent = '사번을 입력해주세요'; return; }
-  if(val.length < 4){ errEl.textContent = '사번이 너무 짧아요'; return; }
-  // 사번을 username으로 저장
-  if(!WS.username) WS.username = val;
-  sessionStorage.setItem('wr_empid', val);
-  document.getElementById('login-wrap').style.display = 'none';
-  errEl.textContent = '';
-  toast(`${val}님, 환영해요 👋`);
+  const val=(document.getElementById('login-input')?.value||'').trim();
+  const errEl=document.getElementById('login-err');
+  if(!val){if(errEl)errEl.textContent='사번을 입력해주세요';return;}
+  if(val.length<4){if(errEl)errEl.textContent='사번이 너무 짧아요';return;}
+  sessionStorage.setItem('wr_empid',val);
+  localStorage.setItem('wr_empid_persist',val);
+  if(errEl){errEl.textContent='';errEl.style.color='';}
+  const sb=getSB();
+  if(sb){
+    if(errEl){errEl.style.color='var(--working)';errEl.textContent='데이터 불러오는 중...';}
+    wLoadFromCloud(val).then(loaded=>{
+      if(errEl){errEl.textContent='';errEl.style.color='';}
+      if(!WS.username)WS.username=val;
+      document.getElementById('login-wrap').style.display='none';
+      bootApp();toast(loaded?val+'님, 반갑습니다 👋':val+'님, 환영해요 👋');
+    }).catch(()=>{
+      wLoad();if(!WS.username)WS.username=val;
+      document.getElementById('login-wrap').style.display='none';
+      if(errEl){errEl.textContent='';errEl.style.color='';}
+      bootApp();toast(val+'님, 환영해요 👋');
+    });
+  }else{wLoad();if(!WS.username)WS.username=val;document.getElementById('login-wrap').style.display='none';bootApp();toast(val+'님, 환영해요 👋');}
 }
 function checkLogin(){
-  const saved = sessionStorage.getItem('wr_empid');
-  if(saved){
-    document.getElementById('login-wrap').style.display = 'none';
-  }
+  const saved=sessionStorage.getItem('wr_empid')||localStorage.getItem('wr_empid_persist');
+  if(saved){sessionStorage.setItem('wr_empid',saved);document.getElementById('login-wrap').style.display='none';}
 }
 
 /* ═══════════════════════════════════════════
    BOOT
 ═══════════════════════════════════════════ */
-wLoad();
-rmLoad();
-fbLoad();
-checkLogin();
-if(!Object.keys(WS.clients).length){
-  WS.clients={'케이오알이':'gov','로보메이션':'sub','케이웨이':'sub','케이싹':'sub','떼루아본':'sub'};
+function bootApp(){
+  rmLoad();fbLoad();
+  if(!Object.keys(WS.clients).length)WS.clients={'케이오알이':'gov','로보메이션':'sub','케이웨이':'sub','케이싹':'sub','떼루아본':'sub'};
+  const _now=new Date();
+  pmCalYear=_now.getFullYear();pmCalMonth=_now.getMonth();pmCalSelected=localDate(_now);
+  lcalYear=_now.getFullYear();lcalMonth=_now.getMonth();lcalSelected=localDate(_now);
+  wInit();renderLCal();renderLCalDetail();lcalUpdateClients();
+  if(typeof rmUpdateBadge==='function')rmUpdateBadge();
+  setTimeout(runAIBrief,400);
 }
-const _now=new Date();
-pmCalYear=_now.getFullYear();pmCalMonth=_now.getMonth();pmCalSelected=localDate(_now);
-lcalYear=_now.getFullYear();lcalMonth=_now.getMonth();lcalSelected=localDate(_now);
-wInit();
-renderLCal();
-renderLCalDetail();
-lcalUpdateClients();
-rmUpdateBadge();
-setTimeout(runAIBrief,400);
+wLoad();checkLogin();
+if(!!(sessionStorage.getItem('wr_empid')||localStorage.getItem('wr_empid_persist')))bootApp();
 
 </script>
 
