@@ -159,7 +159,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex
 /* ════════════════════════════════════════
    RIGHT — HEADER + TABS
 ════════════════════════════════════════ */
-.rheader{padding:13px 18px 0;border-bottom:1px solid var(--border);background:var(--panel);flex-shrink:0;}
+.rheader{padding:13px 18px 0;background:var(--panel);flex-shrink:0;}
 .rheader-top{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
 .week-nav{display:flex;align-items:center;gap:4px;}
 .wnav{width:24px;height:24px;border-radius:6px;border:1px solid var(--border-2);background:var(--card);cursor:pointer;font-size:13px;color:var(--text-2);display:flex;align-items:center;justify-content:center;transition:background .12s;}
@@ -191,7 +191,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex
 /* ════════════════════════════════════════
    STATS
 ════════════════════════════════════════ */
-.pm-stats{display:flex;gap:8px;padding:12px 18px;flex-shrink:0;border-bottom:1px solid var(--border);}
+.pm-stats{display:flex;gap:8px;padding:12px 18px 14px;flex-shrink:0;}
 .pm-stat{flex:1;background:var(--card);border-radius:var(--r);padding:10px 12px;box-shadow:var(--shadow);}
 .pm-stat-val{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-1px;line-height:1;}
 .pm-stat-lbl{font-size:10px;color:var(--text-3);margin-top:3px;}
@@ -330,9 +330,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex
 /* ════════════════════════════════════════
    REPORT, CHECKOUT, MONTHLY, SETTINGS
 ════════════════════════════════════════ */
-.tone-row{display:flex;gap:5px;margin-bottom:12px;}
-.tone-btn{flex:1;font-size:11px;padding:7px 4px;border-radius:8px;border:1px solid var(--border-2);background:var(--card);cursor:pointer;color:var(--text-2);font-family:var(--font);transition:all .15s;text-align:center;}
-.tone-btn.on{background:var(--text);color:#fff;border-color:var(--text);}
 .re-save-row{display:flex;gap:7px;margin-bottom:12px;}
 .re-save-btn{flex:1;padding:10px;font-size:13px;font-weight:600;border-radius:var(--r);border:none;background:var(--text);color:#fff;cursor:pointer;font-family:var(--font);}
 .re-copy-btn{padding:10px 16px;font-size:13px;border-radius:var(--r);border:1px solid var(--border-2);background:transparent;color:var(--text-2);cursor:pointer;font-family:var(--font);}
@@ -523,8 +520,8 @@ select{appearance:none;-webkit-appearance:none;}
           <div style="font-size:12px;color:rgba(255,255,255,.7);line-height:1.6;" id="welcome-msg"></div>
         </div>
       </div>
-      <!-- AI Brief (19번) -->
-      <div style="padding:0 18px 0;flex-shrink:0;">
+      <!-- AI Brief -->
+      <div style="padding:14px 18px 0;flex-shrink:0;">
         <div class="ai-brief">
           <div class="ai-brief-head">
             <div class="ai-brief-icon">✦</div>
@@ -537,37 +534,35 @@ select{appearance:none;-webkit-appearance:none;}
       <!-- Stats -->
       <div class="pm-stats" id="pm-stats"></div>
       <!-- Add -->
-      <div class="pm-add-area">
-        <div class="pm-type-row">
-          <button class="pm-type-btn on" onclick="pmSelType(this,'daily')">일일 업무</button>
-          <button class="pm-type-btn" onclick="openProjModal()">＋ 프로젝트</button>
-        </div>
-        <div class="pm-input-row">
-          <input class="pm-add-inp" id="pm-add-inp"
-            placeholder="업무 입력 (자연어: '삼성 메인 수정')"
-            onkeyup="onPmInputKey(event)" oninput="onPmInputChange(this.value)">
-          <select class="pm-client-sel" id="pm-daily-client"><option value="">고객사</option></select>
-          <button class="pm-add-go" onclick="pmAdd()">추가</button>
-        </div>
-        <div class="pm-ai-hint" id="ai-classify-hint"></div>
-        <div class="pm-proj-dates" id="pm-proj-dates" style="display:none;">
-          <span class="pm-date-lbl">시작</span><input type="date" class="pm-date-inp" id="pm-start">
-          <span class="pm-date-lbl">종료</span><input type="date" class="pm-date-inp" id="pm-end">
-          <select class="pm-client-sel" id="pm-client-sel"><option value="">고객사</option></select>
-        </div>
+      <div class="pm-add-area" style="padding:14px 18px;">
+        <button onclick="openProjModal()"
+          style="width:100%;padding:12px 16px;font-size:14px;font-weight:600;
+                 border-radius:12px;border:none;
+                 background:var(--text);color:#fff;
+                 cursor:pointer;font-family:var(--font);
+                 display:flex;align-items:center;justify-content:center;gap:8px;
+                 transition:opacity .15s,transform .12s;
+                 box-shadow:0 2px 8px rgba(0,0,0,.15);"
+          onmouseover="this.style.opacity='.88';this.style.transform='translateY(-1px)'"
+          onmouseout="this.style.opacity='1';this.style.transform='translateY(0)'">
+          <span style="font-size:18px;line-height:1;font-weight:300;">＋</span>
+          새 프로젝트 추가
+        </button>
+        <!-- 숨겨진 필드 (pmAdd 등 기존 함수 호환용) -->
+        <input id="pm-add-inp" style="display:none;">
+        <input id="pm-daily-client" style="display:none;">
+        <input id="pm-start" type="date" style="display:none;">
+        <input id="pm-end" type="date" style="display:none;">
+        <select id="pm-client-sel" style="display:none;"></select>
+        <div id="ai-classify-hint" style="display:none;"></div>
+        <div id="pm-proj-dates" style="display:none;"></div>
       </div>
       <div class="pm-body" id="pm-body"></div>
     </div>
 
     <!-- REPORT -->
     <div class="rpane" id="rpane-report" style="display:none;">
-      <div class="tone-row">
-        <button class="tone-btn on" data-t="concise" onclick="setTone(this)">📝 간결</button>
-        <button class="tone-btn" data-t="polite" onclick="setTone(this)">🎩 정중</button>
-        <button class="tone-btn" data-t="practical" onclick="setTone(this)">⚡ 실무형</button>
-        <button class="tone-btn" data-t="ai" onclick="setTone(this);genAIReport()">✦ AI 작성</button>
-      </div>
-      <div class="re-save-row">
+            <div class="re-save-row">
         <button class="re-save-btn" onclick="saveReport()">💾 저장</button>
         <button class="re-copy-btn" onclick="copyReport()">복사</button>
       </div>
@@ -607,7 +602,7 @@ select{appearance:none;-webkit-appearance:none;}
         <div id="cl-list"></div>
         <div class="add-cl-row">
           <input class="fi2" id="nc-name" placeholder="고객사 이름" style="flex:1;min-width:80px;"
-            onkeydown="if(event.key==='Enter'){event.preventDefault();addClient()}">
+            onkeydown="if(event.key==='Enter'){event.preventDefault();event.stopPropagation();addClient()}">
           <select class="fi2" id="nc-sec">
             <option value="gov">정부/민간</option><option value="sub">구독제</option>
             <option value="issue">이슈</option><option value="etc">기타</option>
@@ -748,8 +743,18 @@ function renderClientSel(){
 }
 function saveName(){WS.username=document.getElementById('s-username').value.trim();wSave();}
 function addClient(){
-  const name=document.getElementById('nc-name').value.trim(),sec=document.getElementById('nc-sec').value;if(!name)return;
-  WS.clients[name]=sec;document.getElementById('nc-name').value='';wSave();renderClSettings();renderClientSel();
+  const inp=document.getElementById('nc-name');
+  const secEl=document.getElementById('nc-sec');
+  if(!inp||!secEl)return;
+  const name=inp.value.trim();
+  const sec=secEl.value||'etc';
+  if(!name)return;
+  // 즉시 초기화 후 저장 (마지막 글자 반복 방지)
+  inp.value='';
+  inp.blur();
+  WS.clients[name]=sec;
+  wSave();renderClSettings();renderClientSel();
+  toast("'"+name+"' 고객사가 추가됐어요");
 }
 function rmClient(name){delete WS.clients[name];wSave();renderClSettings();renderClientSel();toast('고객사 삭제됐어요');}
 function upClient(name,sec){WS.clients[name]=sec;wSave();}
@@ -1034,8 +1039,11 @@ function renderPMCalendar(){
    REPORT EDITOR (editable)
 ═══════════════════════════════════════════ */
 function taskSec2(t){
-  if(t.base==='issue')return 'issue';if(t.base==='etc')return 'etc';
-  if(t.isNext)return t.base+'-next';if(t.done)return t.base+'-done';return t.base+'-next';
+  if(t.base==='issue') return 'issue';
+  if(t.base==='etc') return 'etc';
+  if(t.isNext) return t.base+'-next';
+  if(t.done) return t.base+'-done';
+  return t.base+'-next';
 }
 function groupByClient(items){
   const order=[],map={};
@@ -1043,36 +1051,74 @@ function groupByClient(items){
   return order.map(k=>({client:k==='__none__'?'':k,tasks:map[k]}));
 }
 
+function buildWeeklyReportData(){
+  // 데일리 업무만 반영 (프로젝트 체크리스트 중복 제외)
+  return (WS.tasks[wk]||[]).filter(t=>!t.isProject);
+}
+
 function renderReportEditor(){
   const editor=document.getElementById('report-editor');if(!editor)return;
-  const tasks=(WS.tasks[wk]||[]).filter(t=>!t.isProject);
+  const allItems=buildWeeklyReportData();
   if(!WS.reportEdits)WS.reportEdits={};
   const edKey=wk;
-  if(!WS.reportEdits[edKey]){
-    // Build from tasks
-    const data={};
-    SEC_ORDER.forEach(s=>{
-      const items=tasks.filter(t=>taskSec2(t)===s);
-      const groups=groupByClient(items);
-      data[s]=[];
-      groups.forEach(g=>{
-        if(g.client)g.tasks.forEach(t=>data[s].push({id:t.id,text:`${g.client} : ${t.content}`}));
-        else g.tasks.forEach(t=>data[s].push({id:t.id,text:t.content}));
-      });
+  // 항상 최신 데이터 기반으로 빌드 (수동 편집 항목은 유지)
+  const data={};
+  SEC_ORDER.forEach(s=>{
+    const sItems=allItems.filter(t=>taskSec2(t)===s);
+    // 고객사별 그룹핑 — 같은 고객사끼리 묶어서 순서대로 추가
+    const groups=groupByClient(sItems);
+    data[s]=[];
+    groups.forEach(g=>{
+      if(g.client){
+        // 고객사명을 구분자로 먼저 추가 (편집 불가 구분자)
+        g.tasks.forEach(t=>{
+          const prefix=t._projTitle?'['+t._projTitle+'] ':'';
+          data[s].push({id:t.id,text:prefix+t.content,_client:g.client});
+        });
+      } else {
+        g.tasks.forEach(t=>{
+          const prefix=t._projTitle?'['+t._projTitle+'] ':'';
+          data[s].push({id:t.id,text:prefix+t.content,_client:''});
+        });
+      }
     });
-    WS.reportEdits[edKey]=data;
+  });
+  // 항상 최신 tasks 기반으로 새로 빌드 (중복/누적 방지)
+  // 수동으로 추가한 항목(id가 'm_'으로 시작)은 유지
+  if(WS.reportEdits[edKey]){
+    SEC_ORDER.forEach(s=>{
+      const manual=(WS.reportEdits[edKey][s]||[]).filter(x=>String(x.id).startsWith('m_'));
+      data[s]=[...(data[s]||[]),...manual];
+    });
   }
+  WS.reportEdits[edKey]=data;
   const editData=WS.reportEdits[edKey];
 
   editor.innerHTML=SEC_ORDER.map(s=>{
     const items=editData[s]||[];
-    const itemsHtml=items.map((item,i)=>`
-      <div class="re-item-row" data-sec="${s}" data-idx="${i}">
-        <input class="re-item-input" value="${esc(item.text)}" data-sec="${s}" data-idx="${i}"
-          onchange="updateReportItem('${s}',${i},this.value)"
-          onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();addReportItemAfter('${s}',${i})}else if(event.key==='Backspace'&&this.value===''){event.preventDefault();deleteReportItem('${s}',${i})}">
-        <button class="re-item-del" onclick="deleteReportItem('${s}',${i})">✕</button>
-      </div>`).join('');
+    // 고객사별 그룹핑 렌더링
+    let lastClient=null;
+    const rows=items.map((item,i)=>{
+      const fid='re_'+s+'_'+i;
+      const clientHeader=(item._client&&item._client!==lastClient)?
+        `<div style="font-size:10px;font-weight:700;color:var(--text-2);padding:6px 6px 2px;letter-spacing:.3px;border-top:${lastClient!==null?'1px solid var(--border)':'none'};margin-top:${lastClient!==null?'4px':'0'};">◎ ${esc(item._client)}</div>`:'';
+      lastClient=item._client||null;
+      return clientHeader+`<div class="re-item-row" id="rerow-${fid}" style="display:flex;align-items:center;gap:4px;padding:2px 0 2px 12px;">
+        <span style="width:4px;height:4px;border-radius:50%;background:var(--text-3);flex-shrink:0;"></span>
+        <span class="re-item-display" id="redisp-${fid}"
+          ondblclick="startReItemEdit('${fid}','${s}',${i})"
+          title="더블클릭으로 편집"
+          style="flex:1;font-size:13px;color:var(--text);line-height:1.7;padding:2px 6px;border-radius:4px;cursor:default;word-break:break-word;"
+          onmouseenter="this.style.background='var(--hover)';this.style.cursor='text'"
+          onmouseleave="this.style.background=''">${esc(item.text)}</span>
+        <input id="reinp-${fid}" style="display:none;flex:1;font-size:13px;padding:3px 6px;border:1px solid var(--border-2);border-radius:4px;background:#fff;color:var(--text);font-family:var(--font);"
+          onblur="commitReItemEdit('${fid}','${s}',${i})"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();commitReItemEdit('${fid}','${s}',${i})}else if(event.key==='Escape'){cancelReItemEdit('${fid}')}">
+        <button class="re-item-del" onclick="deleteReportItem('${s}',${i})" style="opacity:0;flex-shrink:0;"
+          onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0'">✕</button>
+      </div>`;
+    }).join('');
+
     return `<div class="re-section">
       <div class="re-head">
         <span class="re-dot" style="background:${SEC_DOT[s]}"></span>
@@ -1080,7 +1126,7 @@ function renderReportEditor(){
         <span class="re-count">${items.length}건</span>
       </div>
       <div class="re-items" id="re-items-${s}">
-        ${itemsHtml}
+        ${rows}
         <div class="re-add-row">
           <input class="re-add-input" placeholder="항목 추가..." id="re-add-${s}"
             onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();addReportItem('${s}')}">
@@ -1090,7 +1136,81 @@ function renderReportEditor(){
     </div>`;
   }).join('');
 }
+function startReItemEdit(fid,sec,idx){
+  const d=document.getElementById('redisp-'+fid);
+  const inp=document.getElementById('reinp-'+fid);
+  if(!d||!inp)return;
+  inp.value=d.textContent;
+  d.style.display='none';inp.style.display='block';
+  inp.focus();inp.select();
+}
+function commitReItemEdit(fid,sec,idx){
+  const d=document.getElementById('redisp-'+fid);
+  const inp=document.getElementById('reinp-'+fid);
+  if(!d||!inp)return;
+  const val=inp.value.trim();
+  if(val){
+    d.textContent=val;
+    if(WS.reportEdits[wk]&&WS.reportEdits[wk][sec]&&WS.reportEdits[wk][sec][idx])
+      WS.reportEdits[wk][sec][idx].text=val;
+    wSave();
+  }
+  d.style.display='';inp.style.display='none';
+}
+function cancelReItemEdit(fid){
+  const d=document.getElementById('redisp-'+fid);
+  const inp=document.getElementById('reinp-'+fid);
+  if(d)d.style.display='';if(inp)inp.style.display='none';
+}
 
+function startReItemEdit(fid){
+  const d=document.getElementById('redisp-'+fid);
+  const inp=document.getElementById('reinp-'+fid);
+  if(!d||!inp)return;
+  inp.value=d.textContent;
+  d.style.display='none';inp.style.display='block';inp.style.flex='1';
+  inp.focus();inp.select();
+}
+function commitReItemEdit(fid){
+  const d=document.getElementById('redisp-'+fid);
+  const inp=document.getElementById('reinp-'+fid);
+  if(!d||!inp)return;
+  if(inp.value.trim())d.textContent=inp.value.trim();
+  d.style.display='';inp.style.display='none';
+}
+function cancelReItemEdit(fid){
+  const d=document.getElementById('redisp-'+fid);
+  const inp=document.getElementById('reinp-'+fid);
+  if(d)d.style.display='';if(inp)inp.style.display='none';
+}
+function addReItemRow(gid, label){
+  const container=document.getElementById(gid);if(!container)return;
+  const fid='rw_new_'+Date.now();
+  const div=document.createElement('div');
+  div.className='re-item-row';div.id='row-'+fid;
+  div.style.cssText='display:flex;align-items:flex-start;gap:6px;padding:5px 0;border-bottom:1px solid var(--border);';
+  div.innerHTML=`<span style="width:7px;height:7px;border-radius:50%;background:var(--border-2);flex-shrink:0;margin-top:7px;"></span>
+    <input class="re-item-inp-edit" id="reinp-${fid}" placeholder="업무 내용 입력" style="display:block;flex:1;"
+      onblur="finalizeNewReItem('${fid}')"
+      onkeydown="if(event.key==='Enter'){event.preventDefault();finalizeNewReItem('${fid}')}else if(event.key==='Escape'){document.getElementById('row-${fid}')?.remove()}">
+    <button class="re-item-del" onclick="document.getElementById('row-${fid}')?.remove()">✕</button>`;
+  const addBtn=container.querySelector('button');
+  if(addBtn)container.insertBefore(div,addBtn);
+  else container.appendChild(div);
+  document.getElementById('reinp-'+fid)?.focus();
+}
+function finalizeNewReItem(fid){
+  const row=document.getElementById('row-'+fid);
+  const inp=document.getElementById('reinp-'+fid);
+  if(!row||!inp)return;
+  const val=inp.value.trim();
+  if(!val){row.remove();return;}
+  const span=document.createElement('span');
+  span.className='re-item-display';span.id='redisp-'+fid;span.textContent=val;
+  span.title='더블클릭으로 편집';
+  span.ondblclick=()=>startReItemEdit(fid);
+  inp.replaceWith(span);
+}
 
 function startReEdit(fid,sec,idx){
   const d=document.getElementById('redisp-'+fid);
@@ -1177,20 +1297,48 @@ function renderCheckout(){
   const done=tasks.filter(t=>t.date===todayStr&&t.done&&!t.isNext);
   const pending=tasks.filter(t=>t.date===todayStr&&!t.done&&!t.isNext);
   const preview=document.getElementById('checkout-preview');if(!preview)return;
-  const dHtml=done.length?done.map(t=>`<div class="rs-item">- ${t.client?`<strong style="font-weight:500">${esc(t.client)}</strong> : `:''}${esc(t.content)}</div>`).join(''):`<div class="rs-none">완료한 업무가 없어요</div>`;
-  const pHtml=pending.length?`<div style="margin-top:8px"><div class="rs-head" style="margin-bottom:4px"><span class="rs-dot" style="background:#EF9F27"></span>미완료</div>${pending.map(t=>`<div class="rs-item" style="color:#6b6b6b">- ${t.client?`<strong style="font-weight:500">${esc(t.client)}</strong> : `:''}${esc(t.content)}</div>`).join('')}</div>`:'';
-  preview.innerHTML=`<div class="rs-head" style="margin-bottom:2px"><span style="font-size:13px;font-weight:500">[퇴근보고]</span></div><div style="font-size:13px;color:#6b6b6b;margin-bottom:9px" id="co-msg-prev"></div><div class="rs-head" style="margin-bottom:4px"><span class="rs-dot" style="background:#1D9E75"></span>완료 업무</div>${dHtml}${pHtml}`;
-  const msgEl=document.getElementById('co-msg-prev');if(msgEl)msgEl.textContent=document.getElementById('checkout-msg').value||'퇴근합니다!';
+
+  // 고객사별 그룹핑
+  function groupRender(items, color){
+    if(!items.length) return '<div class="rs-none">없어요</div>';
+    const groups=groupByClient(items);
+    return groups.map(g=>{
+      const header=g.client?`<div style="font-size:11px;font-weight:700;color:var(--text-2);padding:5px 0 2px;border-top:1px solid var(--border);margin-top:4px;">◎ ${esc(g.client)}</div>`:'';
+      const rows=g.tasks.map(t=>`<div class="rs-item" style="padding-left:${g.client?'10px':'0'};">· ${esc(t.content)}</div>`).join('');
+      return header+rows;
+    }).join('');
+  }
+
+  const dHtml=groupRender(done,'#1D9E75');
+  const pHtml=pending.length?`<div style="margin-top:10px">
+    <div class="rs-head" style="margin-bottom:4px"><span class="rs-dot" style="background:#EF9F27"></span>미완료</div>
+    ${groupRender(pending,'#EF9F27')}
+  </div>`:'';
+
+  preview.innerHTML=`
+    <div class="rs-head" style="margin-bottom:2px"><span style="font-size:13px;font-weight:600">[퇴근보고]</span></div>
+    <div style="font-size:13px;color:var(--text-2);margin-bottom:10px" id="co-msg-prev"></div>
+    <div class="rs-head" style="margin-bottom:4px"><span class="rs-dot" style="background:var(--done)"></span>완료 업무</div>
+    ${dHtml}${pHtml}`;
+  const msgEl=document.getElementById('co-msg-prev');
+  if(msgEl) msgEl.textContent=document.getElementById('checkout-msg')?.value||'퇴근합니다!';
 }
 function copyCheckout(){
   const tasks=(WS.tasks[wk]||[]).filter(t=>!t.isProject);
-  const msg=document.getElementById('checkout-msg').value.trim()||'퇴근합니다!';
+  const msg=document.getElementById('checkout-msg')?.value.trim()||'퇴근합니다!';
   const done=tasks.filter(t=>t.date===todayStr&&t.done&&!t.isNext);
   const pending=tasks.filter(t=>t.date===todayStr&&!t.done&&!t.isNext);
   let lines=[`[퇴근보고] ${msg}`,'']; 
-  if(done.length)done.forEach(t=>lines.push(`- ${t.client?t.client+' : ':''}${t.content}`));
-  else lines.push('(완료한 업무 없음)');
-  if(pending.length){lines.push('');lines.push('▸ 미완료');pending.forEach(t=>lines.push(`- ${t.client?t.client+' : ':''}${t.content}`));}
+  function appendGrouped(items){
+    const groups=groupByClient(items);
+    groups.forEach(g=>{
+      if(g.client) lines.push(`◎ ${g.client}`);
+      g.tasks.forEach(t=>lines.push(`  · ${t.content}`));
+    });
+  }
+  if(done.length) appendGrouped(done);
+  else lines.push('  (완료한 업무 없음)');
+  if(pending.length){lines.push('');lines.push('▸ 미완료');appendGrouped(pending);}
   navigator.clipboard.writeText(lines.join('\n')).then(()=>toast('퇴근보고 복사됐어요!'));
 }
 
@@ -1230,7 +1378,11 @@ function setRTab(btn,tab){
     if(!el)return;
     el.style.display=(p===tab)?(p==='projects'?'flex':'block'):'none';
   });
-  if(tab==='report')renderReportEditor();
+  if(tab==='report'){
+    // 항상 최신 데이터로 리빌드 (기존 캐시 초기화)
+    if(WS.reportEdits && WS.reportEdits[wk]) delete WS.reportEdits[wk];
+    renderReportEditor();
+  }
   if(tab==='checkout')renderCheckout();
   if(tab==='monthly')renderMonthly();
   if(tab==='reminder'){renderReminders();renderPostitBar();}
@@ -1488,16 +1640,19 @@ function addChecklistToDaily(taskId, itemId){
   const t = findTask(taskId); if(!t||!t.checklist) return;
   const item = t.checklist.find(x=>x.id===itemId); if(!item) return;
   if(!WS.tasks[wk]) WS.tasks[wk] = [];
+  const newId = mkId();
   const newTask = {
-    id: mkId(), content: item.text, client: t.client, base: t.base,
+    id: newId, content: item.text, client: t.client, base: t.base,
     pri: 'mid', done: false, isNext: false, isProject: false,
     date: todayStr, startDate:'', endDate:'', carriedFrom: null,
     scheduledDate:'', order: WS.tasks[wk].length, files:[],
-    fromProjectId: taskId
+    fromProjectId: taskId,
+    fromChecklistItemId: itemId   // ← 핵심: 체크리스트 항목 ID 저장
   };
   WS.tasks[wk].push(newTask);
-  wSave(); renderPM();
-  toast(`'${item.text}' 오늘 할일에 추가됐어요`);
+  lcalSelected = todayStr;
+  wSave(); renderPM(); renderLCal(); renderLCalDetail();
+  toast(`'${item.text}' 오늘 업무에 추가됐어요`);
 }
 
 
@@ -1574,19 +1729,9 @@ function renderLCal(){
       count++;
     });
 
-    // daily tasks
-    dayTasks.forEach(t=>{
-      if(count>=MAX_VISIBLE)return;
-      const issueClass=t.base==='issue'?' issue':'';
-      const doneClass=t.done?' done':'';
-      eventsHtml+=`<div class="lcal-event daily${issueClass}${doneClass}" 
-        onclick="event.stopPropagation();lcalSelectDay('${ds}')" title="${esc(t.content)}">
-        ${t.done?'✓ ':''} ${esc(t.content)}
-      </div>`;
-      count++;
-    });
+    // 데일리 업무는 캘린더에 미표시 (좌측 하단 리스트에서 확인)
 
-    const totalCount=dayProjs.length+dayTasks.length;
+    const totalCount=dayProjs.length;
     if(totalCount>MAX_VISIBLE){
       eventsHtml+=`<div class="lcal-more">+${totalCount-MAX_VISIBLE}개</div>`;
     }
@@ -1672,18 +1817,7 @@ function renderLCalDetail(){
     html+=`<div class="daily-sect" style="margin-top:12px;">완료</div>`;
     html+=doneItems.map(t=>renderDailyPill(t)).join('');
   }
-  if(projs.length){
-    html+=`<div class="daily-sect" style="margin-top:12px;">프로젝트</div>`;
-    projs.forEach(t=>{
-      const prog=projProgress(t);
-      html+=`<div class="daily-item" style="background:#F3EFFA;border-color:rgba(92,56,128,.12);">
-        <span style="font-size:12px;flex-shrink:0;">📁</span>
-        <span class="daily-text">${esc(t.content)}</span>
-        ${prog>=0?`<span style="font-size:10px;color:var(--hold);font-weight:600;">${prog}%</span>`:''}
-      </div>`;
-    });
-  }
-  if(!tasks.length&&!projs.length){
+  if(!tasks.length){
     html+=`<div class="daily-empty">등록된 업무가 없어요</div>`;
   }
   el.innerHTML=html;
@@ -1716,12 +1850,13 @@ function deleteDailyTask(id){
 function lcalToggle(id){
   const t=findTask(id);if(!t)return;
   t.done=!t.done;
-  // 프로젝트 체크리스트와 동기화
+  // 프로젝트 체크리스트 동기화 (fromChecklistItemId 기준)
   if(t.fromProjectId && t.fromChecklistItemId){
-    const proj=findTask(t.fromProjectId);
+    const allTasks=Object.values(WS.tasks).flat();
+    const proj=allTasks.find(x=>x.id===t.fromProjectId);
     if(proj&&proj.checklist){
       const ci=proj.checklist.find(x=>x.id===t.fromChecklistItemId);
-      if(ci) ci.done=t.done;
+      if(ci){ ci.done=t.done; }
     }
   }
   wSave();renderLCal();renderLCalDetail();renderPM();
