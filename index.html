@@ -85,7 +85,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex
 /* Calendar grid */
 .lcal-grid-area{padding:4px 8px 8px;}
 .lcal-grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;}
-.lcal-cell{min-height:80px;padding:5px 4px 4px;border-radius:6px;cursor:pointer;transition:background .1s;overflow:hidden;}
+.lcal-cell{min-height:96px;padding:5px 3px 4px;border-radius:6px;cursor:pointer;transition:background .1s;overflow:hidden;}
 .lcal-cell:hover{background:rgba(0,0,0,.025);}
 .lcal-cell.today{background:rgba(110,155,118,.07);}
 .lcal-cell.today .lcal-cdn{background:var(--text);color:#fff;border-radius:50%;}
@@ -101,9 +101,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex
 .lcal-evt.daily.issue{background:#F5EAEA;color:#7A3535;}
 .lcal-evt.daily.review{background:#FDF5E8;color:#8A5A00;}
 .lcal-evt.proj{color:#fff;font-weight:600;}
-.lcal-evt.proj-s{border-radius:999px 0 0 999px;}
-.lcal-evt.proj-e{border-radius:0 999px 999px 0;}
-.lcal-evt.proj-m{border-radius:0;opacity:.85;}
+/* 시작일: 왼쪽 둥글 + 이름 표시 */
+.lcal-evt.proj-start{border-radius:10px 0 0 10px;padding-left:8px;font-size:10px;font-weight:700;}
+/* 중간날: 직사각형, 텍스트 없음 */
+.lcal-evt.proj-mid{border-radius:0;font-size:0 !important;padding:6px 0;opacity:.75;}
+/* 종료일: 오른쪽 둥글, 텍스트 없음 */
+.lcal-evt.proj-end{border-radius:0 10px 10px 0;font-size:0 !important;padding:6px 0;opacity:.75;}
+/* 하루짜리 */
+.lcal-evt.proj-single{border-radius:10px;font-size:10px;font-weight:700;}
+/* 하위 호환 */
+.lcal-evt.proj-s{border-radius:10px 0 0 10px;}
+.lcal-evt.proj-e{border-radius:0 10px 10px 0;font-size:0 !important;padding:6px 0;}
+.lcal-evt.proj-m{border-radius:0;font-size:0 !important;padding:6px 0;opacity:.75;}
 .lcal-more{font-size:9px;color:var(--text-3);padding:1px 6px;border-radius:999px;background:var(--hover);display:inline-block;margin-top:1px;}
 
 /* ════════════════════════════════════════
@@ -334,10 +343,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);display:flex
 .re-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
 .re-title{font-size:11px;font-weight:500;color:var(--text-2);flex:1;}
 .re-count{font-size:10px;color:var(--text-3);}
-.re-items{padding:0 14px 8px;}
+.re-items{padding:0 14px 10px;}
 .re-item-row{display:flex;align-items:center;gap:4px;padding:2px 0;}
 .re-item-row:hover .re-item-del{opacity:1;}
-.re-item-inp{flex:1;font-size:13px;padding:3px 6px;border:none;border-bottom:1px solid transparent;background:transparent;color:var(--text);font-family:var(--font);}
+.re-item-display{flex:1;font-size:13px;color:var(--text);line-height:1.7;padding:2px 6px;border-radius:4px;cursor:default;word-break:break-all;white-space:normal;}
+.re-item-display:hover{background:var(--hover);cursor:text;}
+.re-item-inp{flex:1;font-size:13px;padding:3px 6px;border:none;border-bottom:1px solid var(--border-2);background:#fff;color:var(--text);font-family:var(--font);display:none;}
 .re-item-inp:focus{outline:none;border-bottom-color:var(--border-2);}
 .re-item-del{width:16px;height:16px;border:none;background:transparent;cursor:pointer;color:var(--text-3);font-size:11px;border-radius:3px;opacity:0;flex-shrink:0;}
 .re-item-del:hover{color:var(--urgent);opacity:1!important;}
@@ -504,8 +515,16 @@ select{appearance:none;-webkit-appearance:none;}
 
     <!-- PROJECTS -->
     <div id="rpane-projects" style="display:flex;flex-direction:column;overflow:hidden;flex:1;">
+      <!-- 웰컴 카드 -->
+      <div id="welcome-card" style="padding:14px 18px 0 18px;flex-shrink:0;display:none;">
+        <div style="background:linear-gradient(135deg,var(--text) 0%,#3a3a38 100%);border-radius:14px;padding:16px 20px;margin-bottom:12px;color:#fff;position:relative;overflow:hidden;">
+          <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:4px;font-weight:500;" id="welcome-date"></div>
+          <div style="font-size:15px;font-weight:700;letter-spacing:-.3px;margin-bottom:4px;" id="welcome-name"></div>
+          <div style="font-size:12px;color:rgba(255,255,255,.7);line-height:1.6;" id="welcome-msg"></div>
+        </div>
+      </div>
       <!-- AI Brief (19번) -->
-      <div style="padding:14px 18px 0;flex-shrink:0;">
+      <div style="padding:0 18px 0;flex-shrink:0;">
         <div class="ai-brief">
           <div class="ai-brief-head">
             <div class="ai-brief-icon">✦</div>
@@ -648,7 +667,7 @@ const TASK_STATUS={
 let reportTone='concise';
 
 let wkOff=0,wk='',todayStr='';
-let WS={clients:{},tasks:{},username:'',reportEdits:{},clientGroups:null};
+let WS={clients:{},tasks:{},username:'',reportEdits:{}};
 let chartW=null,chartC=null;
 let pmCalYear=0,pmCalMonth=0,pmCalSelected='';
 let pmAddType='daily';
@@ -657,22 +676,10 @@ let pmAddType='daily';
    UTILS
 ═══════════════════════════════════════════ */
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;')}
-function getStorageKey(){const id=sessionStorage.getItem('wr_empid')||localStorage.getItem('wr_empid_persist')||'local';return 'wr_'+id;}
-function getCurrentEmpid(){return sessionStorage.getItem('wr_empid')||localStorage.getItem('wr_empid_persist')||'';}
-const SB_URL='';  // REST API는 eyJ... anon 키 필요 — 현재 비활성화
-const SB_KEY='';
-function getSB(){
-  if(!SB_URL||!SB_KEY)return null;
-  return{
-    async load(id){const r=await fetch(`${SB_URL}/rest/v1/user_data?empid=eq.${encodeURIComponent(id)}&select=data`,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});if(!r.ok)throw new Error(r.status);const rows=await r.json();return rows[0]?.data||null;},
-    async save(id,data){await fetch(`${SB_URL}/rest/v1/user_data`,{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify({empid:id,data,updated_at:new Date().toISOString()})});}
-  };
-}
-async function wLoadFromCloud(empid){const sb=getSB();if(!sb||!empid)return false;try{const d=await sb.load(empid);if(d){WS=d;localStorage.setItem(getStorageKey(),JSON.stringify(WS));return true;}}catch(e){console.warn('[SB]',e);}return false;}
-function wLoad(){try{const r=localStorage.getItem(getStorageKey());if(r)WS=JSON.parse(r);}catch(_){}}
+function wLoad(){try{const r=localStorage.getItem('wr_local');if(r)WS=JSON.parse(r)}catch(_){}}
 function wSave(){
-  try{localStorage.setItem(getStorageKey(),JSON.stringify(WS));const sb=getSB(),eid=getCurrentEmpid();if(sb&&eid)sb.save(eid,WS).catch(e=>console.warn('[SB save]',e));}catch(_){}
-  const d=document.getElementById('saveDot');if(d)d.style.background='var(--done)';
+  try{localStorage.setItem('wr_local',JSON.stringify(WS));}catch(_){}
+  const d=document.getElementById('saveDot');if(d)d.style.background='#639922';
 }
 let undoFn=null,toastTimer=null;
 function toast(m,undoCb){
@@ -746,40 +753,13 @@ function addClient(){
 }
 function rmClient(name){delete WS.clients[name];wSave();renderClSettings();renderClientSel();toast('고객사 삭제됐어요');}
 function upClient(name,sec){WS.clients[name]=sec;wSave();}
-
-/* ── Client Groups ── */
-function getClientGroups(){
-  if(WS.clientGroups&&Array.isArray(WS.clientGroups)&&WS.clientGroups.length)return WS.clientGroups;
-  return[{key:'gov',label:'정부/민간',dot:'#378ADD'},{key:'sub',label:'구독제',dot:'#1D9E75'},{key:'issue',label:'이슈사항',dot:'#E24B4A'},{key:'etc',label:'기타',dot:'#888780'}];
-}
-function addClientGroup(){
-  const name=(document.getElementById('cg-name')?.value||'').trim();
-  const color=document.getElementById('cg-color')?.value||'#888780';
-  if(!name){toast('그룹명을 입력해주세요');return;}
-  if(!WS.clientGroups)WS.clientGroups=getClientGroups().map(g=>({...g}));
-  WS.clientGroups.push({key:'cg_'+Date.now(),label:name,dot:color});
-  if(document.getElementById('cg-name'))document.getElementById('cg-name').value='';
-  wSave();renderClSettings();renderClientSel();toast("'"+name+"' 그룹 추가됐어요");
-}
-function renameClientGroup(key,label,dot){
-  if(!WS.clientGroups)WS.clientGroups=getClientGroups().map(g=>({...g}));
-  const g=WS.clientGroups.find(x=>x.key===key);
-  if(g){g.label=label||g.label;g.dot=dot||g.dot;}
-  wSave();renderClSettings();renderClientSel();
-}
-function removeClientGroup(key){
-  if(!WS.clientGroups)WS.clientGroups=getClientGroups().map(g=>({...g}));
-  WS.clientGroups=WS.clientGroups.filter(x=>x.key!==key);
-  Object.keys(WS.clients).forEach(n=>{if(WS.clients[n]===key)WS.clients[n]='etc';});
-  wSave();renderClSettings();renderClientSel();toast('그룹 삭제됐어요');
-}
 function renderClSettings(){
   const el=document.getElementById('cl-list');const names=Object.keys(WS.clients);
   if(!names.length){el.innerHTML='<div style="padding:9px 11px;font-size:12px;color:#a0a0a0">등록된 고객사가 없어요.</div>';return;}
-  const groups=getClientGroups();
+  const groups=[{key:'gov',label:'정부/민간',dot:'#378ADD'},{key:'sub',label:'구독제',dot:'#1D9E75'},{key:'issue',label:'이슈사항',dot:'#E24B4A'},{key:'etc',label:'기타',dot:'#888780'}];
   el.innerHTML=groups.map(g=>{
     const members=names.filter(n=>WS.clients[n]===g.key);if(!members.length)return '';
-    const rows=members.map(n=>`<div class="cl-row"><span class="cl-name">${esc(n)}</span><select class="cl-sel" onchange="upClient('${esc(n)}',this.value)">${getClientGroups().map(v=>`<option value="${v.key}"${WS.clients[n]===v.key?' selected':''}>${esc(v.label)}</option>`).join('')}</select><button class="cl-del-btn" onclick="rmClient('${esc(n)}')">✕</button></div>`).join('');
+    const rows=members.map(n=>`<div class="cl-row"><span class="cl-name">${esc(n)}</span><select class="cl-sel" onchange="upClient('${esc(n)}',this.value)">${['gov','sub','issue','etc'].map(v=>`<option value="${v}"${WS.clients[n]===v?' selected':''}>${{gov:'정부/민간',sub:'구독제',issue:'이슈',etc:'기타'}[v]}</option>`).join('')}</select><button class="cl-del-btn" onclick="rmClient('${esc(n)}')">✕</button></div>`).join('');
     return `<div class="cl-group"><div class="cl-group-head"><span class="cl-group-dot" style="background:${g.dot}"></span><span class="cl-group-label">${g.label}</span><span class="cl-group-count">${members.length}개</span></div>${rows}</div>`;
   }).join('');
 }
@@ -790,7 +770,7 @@ function renderClSettings(){
 function pmSelType(btn,type){document.querySelectorAll('.pm-type-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');pmAddType=type||'daily';const dr=document.getElementById('pm-proj-dates');if(dr){dr.style.display=pmAddType==='project'?'flex':'none';}}
 
 function pmAdd(){
-  const content=document.getElementById('pm-add-inp')?..value.trim();if(!content)return;
+  const content=document.getElementById('pm-add-inp').value.trim();if(!content)return;
   const isProject=(pmAddType==='project');
   const clientVal=isProject?(document.getElementById('pm-client-sel')?.value||''):(document.getElementById('pm-daily-client')?.value||'');
   const startDate=document.getElementById('pm-start')?.value||todayStr;
@@ -801,7 +781,7 @@ function pmAdd(){
     date:todayStr,startDate:isProject?startDate:'',endDate:isProject?endDate:'',
     carriedFrom:null,scheduledDate:'',order:WS.tasks[wk].length,files:[]};
   WS.tasks[wk].push(t);
-  document.getElementById('pm-add-inp')?..value='';
+  document.getElementById('pm-add-inp').value='';
   wSave();renderPM();renderPMCalendar();
 }
 
@@ -927,7 +907,7 @@ function renderAccordionCard(t,defaultOpen){
         ondragend="clDragEnd()">
         <span class="cl-drag">⣿</span>
         <div class="cl-cb${item.done?' ck':''}" onclick="toggleChecklistItem('${sid}','${item.id}')"></div>
-        <span class="cl-text${item.done?' dn':''}">${esc(item.text)}</span>
+        <span class="cl-text${item.done?' dn':''}" data-cl-id="${sid}-${item.id}" ondblclick="startClEdit('${sid}','${item.id}')" title="더블클릭 편집">${esc(item.text)}</span>
         ${alreadyAdded?'<span class="cl-added">오늘 추가됨</span>':''}
         ${!alreadyAdded&&!item.done?`<button class="cl-add-daily" onclick="addChecklistToDaily('${sid}','${item.id}')">+ 오늘</button>`:''}
         <button class="cl-del" onclick="deleteChecklistItem('${sid}','${item.id}')">✕</button>
@@ -1111,6 +1091,31 @@ function renderReportEditor(){
   }).join('');
 }
 
+
+function startReEdit(fid,sec,idx){
+  const d=document.getElementById('redisp-'+fid);
+  const inp=document.getElementById('reinp-'+fid);
+  if(!d||!inp)return;
+  inp.value=d.textContent;
+  d.style.display='none'; inp.style.display='block';
+  inp.focus(); inp.select();
+}
+function commitReEdit(fid,sec,idx){
+  const d=document.getElementById('redisp-'+fid);
+  const inp=document.getElementById('reinp-'+fid);
+  if(!d||!inp)return;
+  const val=inp.value.trim();
+  if(val) d.textContent=val;
+  d.style.display=''; inp.style.display='none';
+  if(WS.reportEdits[wk]&&WS.reportEdits[wk][sec]&&WS.reportEdits[wk][sec][idx])
+    WS.reportEdits[wk][sec][idx].text=val||d.textContent;
+  wSave();
+}
+function cancelReEdit(fid){
+  const d=document.getElementById('redisp-'+fid);
+  const inp=document.getElementById('reinp-'+fid);
+  if(d)d.style.display=''; if(inp)inp.style.display='none';
+}
 function updateReportItem(sec,idx,val){
   if(!WS.reportEdits[wk])return;
   if(WS.reportEdits[wk][sec]&&WS.reportEdits[wk][sec][idx]!==undefined)
@@ -1266,26 +1271,6 @@ function closeProjModal(){
   document.getElementById('proj-modal').classList.remove('open');
 }
 
-
-function extractJsonArray(text){
-  let t=(text||'').replace(/```json|```/gi,'').trim();
-  const s=t.indexOf('['),e=t.lastIndexOf(']');
-  if(s!==-1&&e>s)t=t.slice(s,e+1);
-  return JSON.parse(t);
-}
-async function callClaudeChecklist(name,desc){
-  const startDate=document.getElementById('proj-start')?.value||'';
-  const endDate=document.getElementById('proj-end')?.value||'';
-  const clientVal=(document.getElementById('proj-client')?.value)||'';
-  const daysLeft=startDate&&endDate?Math.ceil((new Date(endDate)-new Date(startDate))/(1000*60*60*24)):null;
-  const style=daysLeft&&daysLeft<=7?'핵심 업무 위주로':daysLeft&&daysLeft<=14?'2주 일정에 맞게':'단계별로';
-  const prompt=`프로젝트명: ${name||'없음'}\n고객사: ${clientVal||'없음'}\n시작: ${startDate||'미정'} ~ 마감: ${endDate||'미정'}${daysLeft?' ('+daysLeft+'일)':''}\n내용: ${desc||'없음'}\n\n${style} 실무 체크리스트 5~8개를 JSON 배열만으로 응답: ["업무1","업무2"]`;
-  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,messages:[{role:'user',content:prompt}]})});
-  if(!res.ok)throw new Error('API '+res.status);
-  const data=await res.json();
-  if(data.error)throw new Error(data.error.message);
-  return extractJsonArray(data.content?.[0]?.text||'');
-}
 async function genProjChecklist(){
   const desc = document.getElementById('proj-desc').value.trim();
   const name = document.getElementById('proj-name').value.trim();
@@ -1401,6 +1386,70 @@ JSON 배열만 응답 (설명 없이): ["업무1","업무2","업무3",...]`}]
 }
 
 /* ─── Checklist functions ─── */
+
+function startClEdit(taskId, itemId){
+  const span = document.querySelector('[data-cl-id="'+taskId+'-'+itemId+'"]');
+  const t = findTask(taskId);
+  if(!span||!t||!t.checklist) return;
+  const item = t.checklist.find(x=>x.id===itemId);
+  if(!item) return;
+  const orig = item.text;
+  span.contentEditable = 'true';
+  span.style.outline = '1.5px solid var(--working)';
+  span.style.borderRadius = '3px';
+  span.style.padding = '1px 4px';
+  span.style.background = '#fff';
+  span.focus();
+  try{
+    const r=document.createRange(); r.selectNodeContents(span); r.collapse(false);
+    const s=window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  }catch(e){}
+  const done = () => {
+    const val = (span.textContent||'').trim();
+    span.contentEditable = 'false';
+    span.style.outline = '';
+    span.style.borderRadius = '';
+    span.style.padding = '';
+    span.style.background = '';
+    span.onblur = null; span.onkeydown = null;
+    if(val) { item.text = val; wSave(); renderPM(); }
+    else span.textContent = orig;
+  };
+  span.onblur = done;
+  span.onkeydown = e => {
+    if(e.key==='Enter'){ e.preventDefault(); span.blur(); }
+    if(e.key==='Escape'){ span.textContent=orig; span.contentEditable='false'; span.style.outline=''; span.onblur=null; }
+  };
+}
+
+/* ── Welcome Card ── */
+const WELCOME_MSGS = [
+  '오늘도 멋진 하루 만들어봐요! 💪',
+  '좋은 시작이 좋은 하루를 만들어요 ✨',
+  '오늘의 업무도 차근차근, 잘 해낼 수 있어요 🎯',
+  '집중력이 최고의 무기예요. 파이팅! 🔥',
+  '작은 완료 하나하나가 큰 성과가 돼요 ✓',
+  '오늘도 최선을 다하는 당신, 응원해요 🌟',
+  '어제보다 오늘이 더 나은 하루가 될 거예요 🚀',
+  '힘든 일도 한 걸음씩 하면 다 돼요 👣',
+  '오늘의 노력이 내일의 결과가 돼요 💡',
+  '당신의 능력을 믿어요. 오늘도 화이팅! 🎉',
+];
+function renderWelcome(){
+  const card=document.getElementById('welcome-card');
+  const nameEl=document.getElementById('welcome-name');
+  const msgEl=document.getElementById('welcome-msg');
+  const dateEl=document.getElementById('welcome-date');
+  if(!card||!nameEl||!msgEl)return;
+  const empid=sessionStorage.getItem('wr_empid')||'';
+  const displayName=WS.username&&WS.username!==empid?WS.username:empid;
+  const now=new Date();
+  const days=['일','월','화','수','목','금','토'];
+  dateEl.textContent=`${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 (${days[now.getDay()]})`;
+  nameEl.textContent=`안녕하세요, ${displayName}님! 👋`;
+  msgEl.textContent=WELCOME_MSGS[Math.floor(Math.random()*WELCOME_MSGS.length)];
+  card.style.display='block';
+}
 function toggleChecklistItem(taskId, itemId){
   const t = findTask(taskId); if(!t||!t.checklist) return;
   const item = t.checklist.find(x=>x.id===itemId); if(!item) return;
@@ -1520,10 +1569,8 @@ function renderLCal(){
       const isEnd=proj.endDate?ds===proj.endDate:true;
       let posClass=isStart&&isEnd?'proj-single':isStart?'proj-start':isEnd?'proj-end':'proj-mid';
       const label=isStart?esc(proj.content):'';
-      eventsHtml+=`<div class="lcal-event proj-bar ${posClass}" style="background:${col}" 
-        onclick="event.stopPropagation();lcalSelectDay('${ds}')" title="${esc(proj.content)}">
-        ${label}
-      </div>`;
+      const lbl=(posClass==='proj-start'||posClass==='proj-single')?esc(proj.content):'';
+      eventsHtml+=`<div class="lcal-evt proj proj-${posClass.replace('proj-','')}" style="background:${col};display:block;height:20px;line-height:20px;" onclick="event.stopPropagation();lcalSelectDay('${ds}')" title="${esc(proj.content)}">${lbl}</div>`;
       count++;
     });
 
@@ -1668,7 +1715,16 @@ function deleteDailyTask(id){
 
 function lcalToggle(id){
   const t=findTask(id);if(!t)return;
-  t.done=!t.done;wSave();renderLCal();renderPM();
+  t.done=!t.done;
+  // 프로젝트 체크리스트와 동기화
+  if(t.fromProjectId && t.fromChecklistItemId){
+    const proj=findTask(t.fromProjectId);
+    if(proj&&proj.checklist){
+      const ci=proj.checklist.find(x=>x.id===t.fromChecklistItemId);
+      if(ci) ci.done=t.done;
+    }
+  }
+  wSave();renderLCal();renderLCalDetail();renderPM();
 }
 
 function lcalOpenQuickAdd(ds){
@@ -1904,16 +1960,20 @@ function togglePostitBar(){
 
 
 function openRmDrawer(){
-  document.getElementById('rm-drawer')?..classList.add('open');
-  document.getElementById('rm-drawer-backdrop')?..classList.add('open');
+  document.getElementById('rm-drawer').classList.add('open');
+  document.getElementById('rm-drawer-backdrop').classList.add('open');
   renderReminders();
 }
 function closeRmDrawer(){
-  document.getElementById('rm-drawer')?..classList.remove('open');
-  document.getElementById('rm-drawer-backdrop')?..classList.remove('open');
+  document.getElementById('rm-drawer').classList.remove('open');
+  document.getElementById('rm-drawer-backdrop').classList.remove('open');
 }
 // patch rmToggleDone to also re-render postit
 const _origRmToggle=rmToggleDone;
+function rmToggleDone(id,dir){
+  const item=rmData[dir].find(x=>x.id===id);if(!item)return;
+  item.done=!item.done;rmSaveData();renderReminders();rmUpdateBadge();}
+
 
 
 /* ═══════════════════════════════════════════
@@ -1942,7 +2002,7 @@ function onPmInputKey(ev){
       // 분류 결과로 추가
       addClassifiedTask(pendingClassified);
       pendingClassified=null;
-      document.getElementById('ai-classify-hint')?..classList.remove('show');
+      document.getElementById('ai-classify-hint').classList.remove('show');
     } else {
       pmAdd();
     }
@@ -1994,8 +2054,8 @@ function addClassifiedTask(classified){
     date:todayStr,startDate:'',endDate:'',carriedFrom:null,scheduledDate:'',
     order:WS.tasks[wk].length,files:[]};
   WS.tasks[wk].push(t);
-  document.getElementById('pm-add-inp')?..value='';
-  document.getElementById('ai-classify-hint')?..classList.remove('show');
+  document.getElementById('pm-add-inp').value='';
+  document.getElementById('ai-classify-hint').classList.remove('show');
   wSave();renderPM();renderLCal();
   toast(`✦ 자동 분류 완료: ${clientVal||'고객사 없음'} · ${classified.type||''}`);
 }
@@ -2219,7 +2279,7 @@ function renderPmCard(t){
         ondragend="clDragEnd()">
         <span class="cl-drag-handle">⣿</span>
         <div class="cl-cb${item.done?' ck':''}" onclick="toggleChecklistItem('${sid}','${item.id}')"></div>
-        <span class="cl-text${item.done?' dn':''}">${esc(item.text)}</span>
+        <span class="cl-text${item.done?' dn':''}" data-cl-id="${sid}-${item.id}" ondblclick="startClEdit('${sid}','${item.id}')" title="더블클릭 편집">${esc(item.text)}</span>
         <button class="cl-add-daily" onclick="addChecklistToDaily('${sid}','${item.id}')">+ 오늘</button>
         <button class="cl-del" onclick="deleteChecklistItem('${sid}','${item.id}')">✕</button>
       </div>`).join('');
@@ -2279,49 +2339,56 @@ function renderPmCard(t){
    LOGIN
 ═══════════════════════════════════════════ */
 function doLogin(){
-  const val=(document.getElementById('login-input')?.value||'').trim();
-  const errEl=document.getElementById('login-err');
-  if(!val){if(errEl)errEl.textContent='사번을 입력해주세요';return;}
-  if(val.length<4){if(errEl)errEl.textContent='사번이 너무 짧아요';return;}
-  sessionStorage.setItem('wr_empid',val);
-  localStorage.setItem('wr_empid_persist',val);
-  if(errEl){errEl.textContent='';errEl.style.color='';}
-  const sb=getSB();
-  if(sb){
-    if(errEl){errEl.style.color='var(--working)';errEl.textContent='데이터 불러오는 중...';}
-    wLoadFromCloud(val).then(loaded=>{
-      if(errEl){errEl.textContent='';errEl.style.color='';}
-      if(!WS.username)WS.username=val;
-      document.getElementById('login-wrap').style.display='none';
-      bootApp();toast(loaded?val+'님, 반갑습니다 👋':val+'님, 환영해요 👋');
-    }).catch(()=>{
-      wLoad();if(!WS.username)WS.username=val;
-      document.getElementById('login-wrap').style.display='none';
-      if(errEl){errEl.textContent='';errEl.style.color='';}
-      bootApp();toast(val+'님, 환영해요 👋');
-    });
-  }else{wLoad();if(!WS.username)WS.username=val;document.getElementById('login-wrap').style.display='none';bootApp();toast(val+'님, 환영해요 👋');}
+  const val = (document.getElementById('login-input')?.value||'').trim();
+  const errEl = document.getElementById('login-err');
+  if(!val){ if(errEl) errEl.textContent='사번을 입력해주세요'; return; }
+  if(val.length < 4){ if(errEl) errEl.textContent='사번이 너무 짧아요'; return; }
+  if(!WS.username) WS.username = val;
+  sessionStorage.setItem('wr_empid', val);
+  localStorage.setItem('wr_empid_persist', val);
+  if(errEl) errEl.textContent = '';
+  document.getElementById('login-wrap').style.display = 'none';
+  // BOOT
+  if(typeof rmLoad==='function') rmLoad();
+  if(typeof fbLoad==='function') fbLoad();
+  if(!Object.keys(WS.clients).length) WS.clients={};
+  const _n=new Date();
+  if(typeof pmCalYear!=='undefined'){pmCalYear=_n.getFullYear();pmCalMonth=_n.getMonth();}
+  if(typeof lcalYear!=='undefined'){lcalYear=_n.getFullYear();lcalMonth=_n.getMonth();lcalSelected=localDate(_n);}
+  if(typeof wInit==='function') wInit();
+  if(typeof renderLCal==='function') renderLCal();
+  if(typeof renderLCalDetail==='function') renderLCalDetail();
+  if(typeof lcalUpdateClients==='function') lcalUpdateClients();
+  toast(val+'님, 환영해요 👋');
+  setTimeout(renderWelcome,200);
 }
 function checkLogin(){
-  const saved=sessionStorage.getItem('wr_empid')||localStorage.getItem('wr_empid_persist');
-  if(saved){sessionStorage.setItem('wr_empid',saved);document.getElementById('login-wrap').style.display='none';}
+  const saved = sessionStorage.getItem('wr_empid')||localStorage.getItem('wr_empid_persist');
+  if(saved){
+    sessionStorage.setItem('wr_empid', saved);
+    document.getElementById('login-wrap').style.display = 'none';
+  }
 }
 
 /* ═══════════════════════════════════════════
    BOOT
 ═══════════════════════════════════════════ */
-function bootApp(){
-  rmLoad();fbLoad();
-  if(!Object.keys(WS.clients).length)WS.clients={'케이오알이':'gov','로보메이션':'sub','케이웨이':'sub','케이싹':'sub','떼루아본':'sub'};
-  const _now=new Date();
-  pmCalYear=_now.getFullYear();pmCalMonth=_now.getMonth();pmCalSelected=localDate(_now);
-  lcalYear=_now.getFullYear();lcalMonth=_now.getMonth();lcalSelected=localDate(_now);
-  wInit();renderLCal();renderLCalDetail();lcalUpdateClients();
-  if(typeof rmUpdateBadge==='function')rmUpdateBadge();
-  setTimeout(runAIBrief,400);
+wLoad();
+rmLoad();
+fbLoad();
+checkLogin();
+if(!Object.keys(WS.clients).length){
+  WS.clients={};
 }
-wLoad();checkLogin();
-if(!!(sessionStorage.getItem('wr_empid')||localStorage.getItem('wr_empid_persist')))bootApp();
+const _now=new Date();
+pmCalYear=_now.getFullYear();pmCalMonth=_now.getMonth();pmCalSelected=localDate(_now);
+lcalYear=_now.getFullYear();lcalMonth=_now.getMonth();lcalSelected=localDate(_now);
+wInit();
+renderLCal();
+renderLCalDetail();
+lcalUpdateClients();
+rmUpdateBadge();
+setTimeout(runAIBrief,400);
 
 </script>
 
