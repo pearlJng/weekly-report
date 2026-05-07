@@ -1,6 +1,3 @@
-const SB_URL = 'https://hjrohgwwzfeupnzjunrk.supabase.co';
-const SB_KEY = 'sb_publishable_aEONiQJfvs9tyPZyssUGrg_3Iqhkfg1';
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -662,8 +659,8 @@ let pmAddType='daily';
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;')}
 function getStorageKey(){const id=sessionStorage.getItem('wr_empid')||localStorage.getItem('wr_empid_persist')||'local';return 'wr_'+id;}
 function getCurrentEmpid(){return sessionStorage.getItem('wr_empid')||localStorage.getItem('wr_empid_persist')||'';}
-const SB_URL='https://hjrohgwwzfeupnzjunrk.supabase.co';
-const SB_KEY='sb_publishable_aEONiQJfvs9tyPZyssUGrg_3Iqhkfg1';
+const SB_URL='';  // REST API는 eyJ... anon 키 필요 — 현재 비활성화
+const SB_KEY='';
 function getSB(){
   if(!SB_URL||!SB_KEY)return null;
   return{
